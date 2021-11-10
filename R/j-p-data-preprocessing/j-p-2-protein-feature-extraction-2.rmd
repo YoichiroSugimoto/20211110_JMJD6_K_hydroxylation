@@ -1,5 +1,5 @@
 ---
-title: "Protein feature extraction 2"
+title: "p-2 Protein feature extraction 2"
 author: "Yoichiro Sugimoto"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 vignette: >
@@ -14,13 +14,17 @@ output:
      keep_md: yes
 ---
 
+# Introduction 
 
-# Package import
+Additional biophysical properties of proteins such as local charge will be analysed.
+
+
+# Environment setup
 
 
 ```{r load packages, message = FALSE, warning = FALSE}
 
-
+temp <- sapply(list.files("../functions", full.names = TRUE), source)
 
 library("Biostrings")
 library("GenomicRanges")
@@ -33,12 +37,9 @@ processors <- 8
 
 ```{r dir create}
 
-
-ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
-
 results.dir <- normalizePath(file.path("../../results"))
-j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
-
+j.p.res.dir <- file.path(results.dir, "j-p-data-preprocessing")
+ind.fa.dir <- file.path(j.p.res.dir, "individual_fastas")
 
 create.dirs(c(
 ))
@@ -124,7 +125,8 @@ charge.dt <- mcmapply(
 
 ```
 
-# Merge and export data
+
+# Export data
 
 
 ```{r hydropathy and charge data}
@@ -138,7 +140,7 @@ all.biophysic.dt <- merge(
 fwrite(
     all.biophysic.dt,
     file.path(
-        j.a.res.dir, "biophysical_propety.csv"
+        j.p.res.dir, "biophysical_propety.csv"
     )
 )
 

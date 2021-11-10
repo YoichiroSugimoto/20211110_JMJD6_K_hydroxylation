@@ -1,0 +1,95 @@
+---
+title: "Protein feature summary table"
+author: "Yoichiro Sugimoto"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+vignette: >
+  %\VignetteIndexEntry{Bioconductor style for PDF documents}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+   html_document:
+     highlight: haddock
+     toc: yes
+     toc_depth: 2
+     keep_md: yes
+---
+
+
+# Package import
+
+
+```{r load packages, message = FALSE, warning = FALSE}
+
+temp <- sapply(list.files("../functions", full.names = TRUE), source)
+
+processors <- 8
+
+```
+
+
+```{r dir create}
+
+results.dir <- normalizePath(file.path("../../results"))
+j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
+
+create.dirs(c(
+))
+
+```
+
+
+# Merge all data
+
+
+```{r fasta data}
+
+
+all.iupred2.dt <- 
+    file.path(j.a.res.dir, "IUPRED2_per_protein_and_position.csv") %>%
+    fread
+
+k.ratio.dt <- 
+    file.path(j.a.res.dir, "K_ratio_per_protein_and_position.csv") %>%
+    fread
+
+all.biophysic.dt <- fread(file.path(j.a.res.dir, "biophysical_propety.csv"))
+setnames(all.biophysic.dt, "Position", "position")
+
+all.protein.feature.per.pos.dt <- merge(
+    all.iupred2.dt,
+    k.ratio.dt,
+    by = c("Accession", "uniprot_id", "position"),
+    all = TRUE
+) %>%
+    merge(
+        all.biophysic.dt,
+        by = c("Accession", "position"),
+        all = TRUE
+    )
+
+fwrite(
+    all.protein.feature.per.pos.dt,
+    file.path(j.a.res.dir, "all_protein_feature_per_position.csv")
+)
+
+brd.feature.per.pos.dt <- all.protein.feature.per.pos.dt[grepl("BRD[[:digit:]]", Accession)]
+
+fwrite(
+    brd.feature.per.pos.dt,
+    file.path(j.a.res.dir, "BRDs_feature_per_position.csv")
+)
+
+
+```
+
+
+
+# Session information
+
+
+```{r session info}
+
+sessioninfo::session_info()
+
+
+```

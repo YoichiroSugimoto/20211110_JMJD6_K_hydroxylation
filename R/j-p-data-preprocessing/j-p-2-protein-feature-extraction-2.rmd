@@ -1,0 +1,157 @@
+---
+title: "Protein feature extraction 2"
+author: "Yoichiro Sugimoto"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+vignette: >
+  %\VignetteIndexEntry{Bioconductor style for PDF documents}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+   html_document:
+     highlight: haddock
+     toc: yes
+     toc_depth: 2
+     keep_md: yes
+---
+
+
+# Package import
+
+
+```{r load packages, message = FALSE, warning = FALSE}
+
+
+
+library("Biostrings")
+library("GenomicRanges")
+library("idpr")
+
+processors <- 8
+
+```
+
+
+```{r dir create}
+
+
+ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
+
+results.dir <- normalizePath(file.path("../../results"))
+j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
+
+
+create.dirs(c(
+))
+
+```
+
+
+# Data import
+
+
+```{r fasta data}
+
+all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
+
+names(all.protein.bs) <- names(all.protein.bs) %>%
+    {gsub("sp\\|", "", .)} %>%
+    {str_split_fixed(., " ", n = 2)[, 1]}
+
+uniprot.accession.flag <- names(all.protein.bs) %>%
+    {str_split_fixed(., "\\|", n = 2)[, 2]} %>%
+    {nchar(.) > 0}
+
+all.protein.bs <- all.protein.bs[uniprot.accession.flag]
+
+## These 2 filtrations were peformed for this script only
+all.protein.bs <- all.protein.bs[width(all.protein.bs) >= 9]
+
+non.standard.aa.count <-lapply(
+    all.protein.bs,
+    function(x){
+        str_count(as.character(x), "(U|O)")
+    }
+) %>% unlist
+
+all.protein.bs <- all.protein.bs[non.standard.aa.count == 0]
+
+```
+
+# Local hydropathy
+
+
+```{r Hydropathy}
+
+hydropathy.dt <- mcmapply(
+    function(x, y){
+        scaledHydropathyLocal(
+            x,
+            window = 9,
+            plotResults = FALSE
+        ) %>% data.table %>%
+            {.[, Accession := y]}
+    },
+    all.protein.bs,
+    names(all.protein.bs),
+    SIMPLIFY = FALSE,
+    mc.cores = processors
+) %>%
+    rbindlist
+
+
+```
+
+# Local charge
+
+
+```{r charge}
+
+charge.dt <- mcmapply(
+    function(x, y){
+        chargeCalculationLocal(
+            x,
+            window = 9,
+            plotResults = FALSE
+        ) %>% data.table %>%
+            {.[, Accession := y]}
+    },
+    all.protein.bs,
+    names(all.protein.bs),
+    SIMPLIFY = FALSE,
+    mc.cores = processors
+) %>%
+    rbindlist
+
+```
+
+# Merge and export data
+
+
+```{r hydropathy and charge data}
+
+all.biophysic.dt <- merge(
+    hydropathy.dt[, .(Accession, Position, WindowHydropathy)],
+    charge.dt[, .(Accession, Position, windowCharge)],
+    by = c("Accession", "Position")
+)
+
+fwrite(
+    all.biophysic.dt,
+    file.path(
+        j.a.res.dir, "biophysical_propety.csv"
+    )
+)
+
+```
+
+
+
+# Session information
+
+
+```{r session info}
+
+sessioninfo::session_info()
+
+
+```

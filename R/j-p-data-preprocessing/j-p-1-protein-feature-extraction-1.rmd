@@ -1,0 +1,313 @@
+---
+title: "p-1. Protein feature extraction (1/2)"
+author: "Yoichiro Sugimoto"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+vignette: >
+  %\VignetteIndexEntry{Bioconductor style for PDF documents}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+   html_document:
+     highlight: haddock
+     toc: yes
+     toc_depth: 2
+     keep_md: yes
+---
+
+# Overview
+
+In this script, disorderedness and enrichment of lysine residues in protein sequences will be examined.
+
+
+# Environment setup
+
+
+```{r load packages, message = FALSE, warning = FALSE}
+
+temp <- sapply(list.files("../functions", full.names = TRUE), source)
+
+library("Biostrings")
+library("GenomicRanges")
+
+processors <- 8
+
+```
+
+
+```{r dir create}
+
+results.dir <- normalizePath(file.path("../../results"))
+j.p.res.dir <- file.path(results.dir, "j-p-data-preprocessing")
+
+ind.fa.dir <- file.path(j.p.res.dir, "individual_fastas")
+iupred2.dir <- normalizePath(file.path(j.p.res.dir, "IUPred2_score"))
+
+create.dirs(c(
+    ind.fa.dir,
+    results.dir,
+    j.p.res.dir,
+    iupred2.dir
+))
+
+
+
+
+# Data import
+
+
+```{r fasta data}
+
+all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
+
+names(all.protein.bs) <- names(all.protein.bs) %>%
+    {gsub("sp\\|", "", .)} %>%
+    {str_split_fixed(., " ", n = 2)[, 1]}
+
+uniprot.accession.flag <- names(all.protein.bs) %>%
+    {str_split_fixed(., "\\|", n = 2)[, 2]} %>%
+    {nchar(.) > 0}
+
+all.protein.bs <- all.protein.bs[uniprot.accession.flag]
+
+
+```
+
+# IUPRED2
+
+```{r calculation of max k ratio and IUPRED2}
+
+temp <- mclapply(
+    1:length(all.protein.bs),
+    function(x){
+        writeXStringSet(
+            all.protein.bs[x],
+            file.path(
+                ind.fa.dir,
+                paste0(
+                    str_split_fixed(
+                        names(all.protein.bs)[x], "\\|", 2
+                    )[, 1], ".fa")
+            )
+        )
+    },
+    mc.cores = processors
+)
+
+x <- 1
+
+cur.dir <- getwd()
+setwd(normalizePath(ind.fa.dir))
+
+temp <- mclapply(
+    1:length(all.protein.bs),
+    function(x){
+        paste(
+            "python",
+            file.path("/camp/lab/ratcliffep/home/users/sugimoy/CAMP_HPC/software/source_files/iupred2a/iupred2a.py"),
+            paste0(
+                str_split_fixed(
+                    names(all.protein.bs)[x], "\\|", 2
+                )[, 1], ".fa"),
+            "long", ">",
+            file.path(
+                iupred2.dir,
+                paste0(
+                    str_split_fixed(
+                        names(all.protein.bs)[x], "\\|", 2
+                    )[, 1], ".txt"
+                )
+            )
+        ) %>%
+            system
+    },
+    mc.cores = processors
+)
+setwd(cur.dir)
+
+all.iupred2.dt <- mcmapply(
+    function(x, y){
+        dt <- fread(file.path(iupred2.dir, paste0(x, ".txt")))
+        setnames(
+            dt,
+            old = c("# POS", "RES", "IUPRED2"),
+            new = c("position", "residue", "IUPRED2")
+        )
+        dt[, `:=`(
+            Accession = y,
+            uniprot_id = x
+        )]
+    },
+    str_split_fixed(names(all.protein.bs), "\\|", n = 2)[, 1],
+    names(all.protein.bs),
+    SIMPLIFY = FALSE,
+    mc.cores = processors
+) %>%
+    rbindlist
+
+fwrite(
+    all.iupred2.dt,
+    file.path(j.p.res.dir, "IUPRED2_per_protein_and_position.csv")
+)
+
+
+max.iupred2.dt <-
+    copy(all.iupred2.dt)[, list(
+            IUPRED2_max = max(IUPRED2),
+            IUPRED2_mean = mean(IUPRED2)
+        ), by = list(Accession, uniprot_id)]
+
+fwrite(
+    max.iupred2.dt,
+    file.path(j.p.res.dir, "Max_IUPRED2_per_protein.csv")
+)
+
+
+```
+
+# K ratio
+
+
+```{r definition of function}
+
+calculateLettersIn10merRatio <- function(sl.aa.letters, all.protein.bs, window.size = 10){
+    
+    letter.pos.list <- mclapply(
+        all.protein.bs,
+        letterFrequencyInSlidingView,
+        view.width = 1, letters = sl.aa.letters, as.prob = TRUE,
+        mc.cores = processors
+    )
+
+    ratio.dt <- mcmapply(
+        function(x, y){
+            data.table(
+                position = 1:nrow(x),
+                letter_position = rowSums(x[, sl.aa.letters, drop = FALSE]),
+                letter_ratio = zoo::rollapply(
+                                        rowSums(x[, sl.aa.letters, drop = FALSE]),
+                                        window.size,
+                                        FUN = function(y){sum(y) / window.size},
+                                        partial = TRUE, align = "left"
+                                    ),
+                Accession = y
+            )
+        },
+        letter.pos.list,
+        names(letter.pos.list),
+        SIMPLIFY = FALSE,
+        mc.cores = processors
+    ) %>%
+        rbindlist
+
+    ratio.dt[, uniprot_id := str_split_fixed(Accession, "\\|", n = 2)[, 1]]
+
+    calcMaxLetter <- function(accession, dt){
+        dt <- copy(dt)[Accession == accession]
+        dt[, `:=`(
+            letter_ratio_score =
+                data.table::shift(letter_ratio, window.size - 1, "lag", fill = 0) %>%
+                {zoo::rollapply(., window.size, FUN = max, partial = TRUE, align = "left")}
+        )]
+        return(dt)
+    }
+
+    letter.ratio.dt <- mclapply(
+        ratio.dt[, unique(Accession)],
+        calcMaxLetter,
+        dt = ratio.dt,
+        mc.cores = processors
+    ) %>%
+        rbindlist
+
+    max.letter.ratio.dt <-
+        copy(letter.ratio.dt)[, list(
+                letter_ratio_max = max(letter_ratio)
+            ), by = list(Accession, uniprot_id)]
+
+    setnames(
+        letter.ratio.dt,
+        old = colnames(letter.ratio.dt),
+        new = gsub("letter", paste(sl.aa.letters, collapse = ""), colnames(letter.ratio.dt))
+    )
+
+    setnames(
+        max.letter.ratio.dt,
+        old = colnames(max.letter.ratio.dt),
+        new = gsub("letter", paste(sl.aa.letters, collapse = ""), colnames(max.letter.ratio.dt))
+    )
+
+    fwrite(
+        letter.ratio.dt,
+        file.path(j.p.res.dir, paste0(
+                                   paste(sl.aa.letters, collapse = ""),
+                                   "_ratio_per_protein_and_position.csv")
+                  )
+    )
+
+    fwrite(
+        max.letter.ratio.dt,
+        file.path(
+            j.p.res.dir,
+            paste0(
+                "Max_",
+                paste(sl.aa.letters, collapse = ""),
+                "_ratio_per_protein.csv"
+            )
+        )
+    )
+
+    return()
+}
+
+
+```
+
+
+
+```{r k ratio}
+
+temp <- calculateLettersIn10merRatio(
+    sl.aa.letters = "K",
+    all.protein.bs = all.protein.bs,
+    window.size = 10
+)
+
+```
+
+# Others
+
+
+```{r kr and others ratio}
+
+temp <- calculateLettersIn10merRatio(
+    sl.aa.letters = c("K", "R"),
+    all.protein.bs = all.protein.bs,
+    window.size = 10
+)
+
+temp <- calculateLettersIn10merRatio(
+    sl.aa.letters = c("K", "R", "S"),
+    all.protein.bs = all.protein.bs,
+    window.size = 10
+)
+
+temp <- calculateLettersIn10merRatio(
+    sl.aa.letters = c("K", "R", "S", "H"),
+    all.protein.bs = all.protein.bs,
+    window.size = 10
+)
+
+
+```
+
+
+
+# Session information
+
+
+```{r session info}
+
+sessioninfo::session_info()
+
+
+```

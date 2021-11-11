@@ -1,0 +1,714 @@
+---
+title: "Analysis of the stoichiometry of lysine hydroxylation and arginine methylation"
+author: "Yoichiro Sugimoto"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+vignette: >
+  %\VignetteIndexEntry{Bioconductor style for PDF documents}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+   html_document:
+     highlight: haddock
+     toc: yes
+     toc_depth: 2
+     keep_md: yes
+---
+
+
+# Package import
+
+
+```{r load packages, message = FALSE, warning = FALSE}
+
+library("data.table")
+library("ggplot2")
+library("ggprism")
+library("stringr")
+library("Biostrings")
+library("dplyr")
+library("GenomicRanges")
+
+processors <- 8
+
+temp <- sapply(list.files("../functions", full.names = TRUE), source)
+
+```
+
+
+```{r dir create}
+
+ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
+results.dir <- normalizePath(file.path("../../results"))
+
+j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
+j.b.res.dir <- file.path(results.dir, "j-b-stoichiometry")
+j.b.4.res.dir <- file.path(j.b.res.dir, "j-b-4-stoichiometry-with-MR")
+
+
+create.dirs(c(
+    j.b.4.res.dir
+))
+
+```
+
+
+# Data import
+
+
+```{r fasta data}
+
+all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
+names(all.protein.bs) <- names(all.protein.bs) %>%
+    {gsub("sp\\|", "", .)} %>%
+    {str_split_fixed(., " ", n = 2)[, 1]}
+uniprot.accession.flag <- names(all.protein.bs) %>%
+    {str_split_fixed(., "\\|", n = 2)[, 2]} %>%
+    {nchar(.) > 0}
+all.protein.bs <- all.protein.bs[uniprot.accession.flag]
+
+cells <- c("J6KO", "HeLa")
+
+inputs <- c("JQ1_J6KO", "JQ1_HeLa", "J6_J6KO", "J6_HeLa")
+
+j6.all.dt <- lapply(
+    inputs,
+    function(x){
+        dt <- fread(
+            paste0(
+                "../../data/rawdata/MethylR_data/MethylR_20211015/MethylR_",
+                x, "_protein-peptides.csv"
+            )
+        )
+        setnames(
+            dt,
+            old = c(
+                "Protein Accession",
+                grep("Area", colnames(dt), value = TRUE),
+                "#Feature"
+                ),
+            new = c("Accession", "Area", "n_feature")
+        )
+        dt[, `:=`(
+            cell = str_split_fixed(x, "_", n = 2)[, 2],           
+            data_type = "Others",
+            enrichment_method = str_split_fixed(x, "_", n = 2)[, 1],
+            Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
+        )]
+        dt[, .(cell, Accession, Start, End, Peptide, Area, PTM, n_feature, data_type, enrichment_method)]
+    }
+) %>% rbindlist
+
+
+## j6.all.dt <- lapply(
+##     cells,
+##     function(x){
+##         dt <- fread(
+##             paste0(
+##                 "../../data/rawdata/MethylR_data/J6_Peptide_PD-MethylR_",
+##                 x, "_protein-peptides.csv"
+##             )
+##         )
+##         setnames(
+##             dt,
+##             old = c(
+##                 "Protein Accession",
+##                 grep("Area", colnames(dt), value = TRUE),
+##                 "#Feature"
+##                 ),
+##             new = c("Accession", "Area", "n_feature")
+##         )
+##         dt[, `:=`(
+##             cell = x,
+##             data_type = "Others",
+##             enrichment_method = "J6",
+##             Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
+##         )]
+##         dt[, .(cell, Accession, Start, End, Peptide, Area, PTM, n_feature, data_type, enrichment_method)]
+##     }
+## ) %>% rbindlist
+
+## j6.all.dt[, cell := factor(cell, levels = cells)]
+
+## library("readxl")
+
+## readData <- function(sheet.name){
+##     excel.file <- file.path("../../data/rawdata/MethylR_data/JQ1-MethylR_WT_vs_J6KO.xlsx")
+    
+##     dt <- read_excel(excel.file, sheet = sheet.name) %>%
+##         data.table
+
+##     setnames(
+##         dt,
+##         old = c(
+##             "Protein Accession",
+##             grep("Area", colnames(dt), value = TRUE),
+##             "#Feature"
+##         ),
+##         new = c("Accession", "Area", "n_feature")
+##     )
+
+##     dt[, `:=`(
+##         cell = str_split_fixed(sheet.name, " ", n = 2)[, 1],
+##         data_type = str_split_fixed(sheet.name, " ", n = 2)[, 2],
+##         enrichment_method = "JQ1",
+##         Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
+##     )]
+
+##     dt <- dt[, .(cell, Accession, Start, End, Peptide, Area, PTM, n_feature, data_type, enrichment_method)]
+
+##     return(dt)
+## }
+
+## jq1.all.dt <- lapply(
+##     excel_sheets("../../data/rawdata/MethylR_data/JQ1-MethylR_WT_vs_J6KO.xlsx")[1:4],
+##     readData
+## ) %>%
+##     rbindlist
+
+all.iupred2.dt <- fread(file.path(j.a.res.dir, "IUPRED2_per_protein_and_position.csv"))
+k.ratio.dt <- fread(file.path(j.a.res.dir, "K_ratio_per_protein_and_position.csv"))
+
+```
+
+
+# Data filtration
+
+## Preliminary checks
+
+
+```{r preliminary checks}
+
+## all.dt <- rbind(j6.all.dt, jq1.all.dt)
+all.dt <- j6.all.dt
+
+print("All PTMs")
+PTMs <- all.dt[, unlist(str_split(PTM, "; "))]
+PTMs <- PTMs[PTMs != ""]
+table(sort(PTMs))
+
+
+print("All K or R related modifications")
+
+testPTMCorrection <- function(all.dt, peptide.col = "Peptide"){
+    all.letters <- all.dt[
+       ,
+        unlist(str_split(get(peptide.col),"(?=[[:alpha:]])"))
+    ]
+    all.letters <- all.letters[all.letters != ""]
+    table(all.letters[grepl("(^K|^R)", all.letters)])    
+}
+
+testPTMCorrection(all.dt)
+
+all.pp.dt <- all.dt[, aa_list := str_split(Peptide, "(?=[[:alpha:]])")]
+
+
+```
+
+## Filtration
+
+```{r data filtration}
+
+filterDt <- function(all.dt){
+    
+    print(all.dt[, table(cell, data_type, enrichment_method)])
+
+    all.dt <- all.dt[
+        Area > 0 &
+        Accession %in% names(all.protein.bs)
+    ]
+
+    ## Remove Acetylation containing PTMs
+    all.dt[, corrected_peptide := gsub(
+                 "\\(\\+42\\.01\\)\\(\\+[0-9][0-9]\\.[0-9][0-9]\\)",
+                 "", Peptide)
+           ]
+
+    all.dt[, corrected_peptide := gsub(
+                 "\\(\\+[0-9][0-9]\\.[0-9][0-9]\\)\\(\\+42\\.01\\)",
+                 "", corrected_peptide)
+           ]
+    
+    all.dt[, corrected_peptide := gsub("\\(\\+42\\.01\\)", "", Peptide)]
+
+    print("All K and R modification after filtering acetylated residues")
+    print(testPTMCorrection(all.dt, peptide.col = "corrected_peptide"))
+
+    
+    ## Filter out peptides with C-term propionylation and peptides which do not have C-term K, KOH or R
+    all.dt <- all.dt[
+        str_count(corrected_peptide, "K\\(\\+56\\.03\\)$") +
+        str_count(corrected_peptide, "K\\(\\+72\\.02\\)$") == 0 &
+        (
+            str_count(corrected_peptide, "(R$|R\\(\\+14\\.02\\)$)") == 1 |
+            str_count(corrected_peptide, "(K$|K\\(\\+15\\.99\\)$)") == 1 
+        )
+    ]
+    ## Filter out peptide with C-term R(+28.03)
+    all.dt <- all.dt[str_count(corrected_peptide, "R\\(\\+28\\.03\\)$") == 0]
+    
+    print("Filtration 1")
+    print(all.dt[, table(cell, data_type, enrichment_method)])
+
+    ## Also K and K(+15.99) for at most one occurence in the peptide (with ignoring C terminus K and KP)
+    all.dt[
+      , Peptide_for_filtration := gsub(
+            "(K\\(\\+15\\.99\\)$|K$|R$)", "", corrected_peptide # C-term K or R is OK
+        ) %>%        
+            {gsub("K\\(\\+56\\.03\\)", "X", .)} %>%
+            {gsub("K\\(\\+72\\.02\\)", "X", .)} %>%
+            {gsub("R\\(\\+28\\.03\\)$", "X", .)} %>% ## Dimethylated R won't be cleaved by Trypsin
+            {gsub("\\s*\\([^\\)]+\\)", "", .)} %>%
+            {gsub("KP", "XZ", .)} %>%
+            {gsub("RP", "XZ", .)}
+    ]
+
+    all.dt <- all.dt[str_count(Peptide_for_filtration, "(K|R)") < 2]
+    all.dt[, Peptide_for_filtration := NULL]
+
+    print("Filtration 2")
+    print(all.dt[, table(cell, data_type, enrichment_method)])    
+
+    all.dt[, PTMs := str_split(PTM, "; ")]
+
+    all.dt <- all.dt[
+      , corrected_peptide :=
+            case_when(
+                !any(PTMs[[1]] == "Oxidation (K)") ~
+                    gsub("K\\(\\+15.99\\)","K", corrected_peptide),
+                TRUE ~ corrected_peptide
+            ) %>%
+            {case_when(
+                 !any(PTMs[[1]] == "Oxidised Propionylation") ~
+                     gsub("K\\(\\+72.02\\)","K", .),
+                 TRUE ~ .
+             )} %>%
+            {case_when(
+                 !any(PTMs[[1]] == "Methylation(R)") ~
+                     gsub("R\\(\\+14\\.02\\)", "R", .),
+                 TRUE ~ .
+             )} %>%
+            {case_when(
+                 !any(PTMs[[1]] == "Dimethylation(R)") ~
+                     gsub("R\\(\\+28\\.03\\)", "R", .),
+                 TRUE ~ .
+             )},
+        by = seq_len(nrow(all.dt))
+    ]
+
+    print("After PTM assignment filtration")
+    print(testPTMCorrection(all.dt, peptide.col = "corrected_peptide"))
+    
+    all.dt[, `:=`(
+        raw_peptide = gsub("\\s*\\([^\\)]+\\)","", Peptide),
+        k_info_peptide =
+            gsub(
+                names(AMINO_ACID_CODE) %>%
+                {.[. != "K"]} %>%
+                {paste(., collapse = "|")} %>%
+                {paste0("(", ., ")")}, 
+                "A", corrected_peptide # Non K amino acids will be replaced with A
+            ) %>%
+            {gsub("K\\(\\+56\\.03\\)", "K", .)} %>% 
+            {gsub("(K\\(\\+15\\.99\\)|K\\(\\+72\\.02\\))", "H", .)} %>% # H: hydroxylared K
+            {gsub("\\s*\\([^\\)]+\\)","", .)},
+        r_info_peptide =
+            gsub(
+                names(AMINO_ACID_CODE) %>%
+                {.[. != "R"]} %>%
+                {paste(., collapse = "|")} %>%
+                {paste0("(", ., ")")}, 
+                "A", corrected_peptide # Non R amino acids will be replaced with A
+            ) %>%
+            {gsub("R\\(\\+14\\.02\\)", "M", .)} %>% # M: Monoaceyltation 
+            {gsub("R\\(\\+28\\.03\\)", "D", .)} %>% # D: dimethylation
+            {gsub("\\s*\\([^\\)]+\\)","", .)}
+    )]
+
+    all.dt[, `:=`(
+        K_index = str_locate_all(k_info_peptide, "(K|H)") %>%
+            {lapply(., function(x) x[,2])},
+        oxK_index = str_locate_all(k_info_peptide, "H") %>%
+            {lapply(., function(x) x[,2])},
+        all_aa_index = str_locate_all(k_info_peptide, "(K|H|A)") %>%
+            {lapply(., function(x) x[,2])},
+        R_index = str_locate_all(r_info_peptide, "(R|M|D)") %>%
+            {lapply(., function(x) x[,2])},
+        mR_index = str_locate_all(r_info_peptide, "M") %>%
+            {lapply(., function(x) x[,2])},
+        dmR_index = str_locate_all(r_info_peptide, "D") %>%
+            {lapply(., function(x) x[,2])},
+        all_aa_index2 = str_locate_all(r_info_peptide, "(R|M|D|A)") %>%
+            {lapply(., function(x) x[,2])}
+    )]
+}
+
+all.pp.dt <- filterDt(all.pp.dt)
+
+```
+
+# Individual amino acid position
+
+
+```{r index to aa pos}
+
+indexToPosition <- function(index.name, dt){
+    dt <- copy(dt)
+    dt[, peptide_id := 1:.N]
+
+    dt[
+      , n_index := length(get(paste0(index.name, "_index"))[[1]]),
+        by = seq_len(nrow(dt)) 
+    ]
+
+    e.dt <- dt[rep(1:nrow(dt), times = n_index)]
+    e.dt[, index_pos_id := 1:.N, by = peptide_id]
+    e.dt[
+      , position_in_peptide :=
+            get(paste0(index.name, "_index"))[[1]][index_pos_id],
+        by = seq_len(nrow(e.dt))
+    ]
+
+    e.dt[, `:=`(
+        position = Start + position_in_peptide - 1,
+        aa_type = index.name
+    )]
+
+    e.dt <- e.dt[, c(
+        "cell", "data_type", "enrichment_method",
+        "Accession", "aa_type", "position", "Area", "n_feature"
+    ), with = FALSE]
+
+    pos.dt <- e.dt[, list(
+        total_count = .N,
+        total_area = sum(Area),
+        total_n_feature = sum(n_feature)
+    ), by = list(
+           cell, data_type, enrichment_method,
+           Accession, aa_type, position
+       )]
+
+    return(pos.dt)
+}
+
+
+all.pos.dt <- lapply(
+    c("K", "oxK", "R", "mR", "dmR", "all_aa"),
+    indexToPosition,
+    dt = all.pp.dt
+) %>%
+    rbindlist
+
+
+```
+
+
+
+# Analysis of stoichiometry and other features
+
+
+```{r calculate stoic}
+
+stoic.dt <- dcast(
+    all.pos.dt[aa_type %in% c("K", "oxK", "R", "mR", "dmR")],
+    formula = cell + data_type + enrichment_method + Accession + position ~
+        aa_type,
+    value.var = c("total_area", "total_n_feature"),
+    fill = 0
+)
+
+stoic.dt[, `:=`(
+    oxK_ratio = total_area_oxK / total_area_K,
+    mR_ratio = total_area_mR / total_area_R,
+    dmR_ratio = total_area_dmR / total_area_R
+)]
+
+fwrite(
+    stoic.dt,
+    file.path(j.b.4.res.dir, "hydroxyK_metR__stoichiometry_summary_v2.csv")
+)
+
+k.cols <- c(
+    grep(
+        "(_K$|_oxK$)",
+        colnames(stoic.dt),
+        value = TRUE
+    ),
+    "oxK_ratio"
+)
+
+k.stoic.dt <- dcast(
+    stoic.dt[total_area_K > 0],
+    enrichment_method + Accession + position ~ cell,
+    value.var = k.cols
+)
+
+fwrite(
+    k.stoic.dt,
+    file.path(j.b.4.res.dir, "hydroxyK__stoichiometry_summary_v2.csv")
+)
+
+
+r.cols <- c(
+    grep(
+        "(_R$|_mR$|_dmR)",
+        colnames(stoic.dt),
+        value = TRUE
+    ),
+    "mR_ratio", "dmR_ratio"
+)
+
+r.stoic.dt <- dcast(
+    stoic.dt[total_area_R > 0],
+    enrichment_method + Accession + position ~ cell,
+    value.var = r.cols
+)
+
+fwrite(
+    r.stoic.dt,
+    file.path(j.b.4.res.dir, "metR__stoichiometry_summary_v2.csv")
+)
+
+
+r.stoic.dt[!is.na(dmR_ratio_HeLa) & !is.na(dmR_ratio_J6KO) & dmR_ratio_HeLa > 0] %>%
+    ggplot(aes(x = dmR_ratio_HeLa, y = dmR_ratio_J6KO)) +
+    geom_abline(slope = 1) +
+    geom_point() 
+
+r.stoic.dt[!is.na(dmR_ratio_HeLa) & !is.na(dmR_ratio_J6KO) & dmR_ratio_HeLa > 0] %$%
+    wilcox.test(dmR_ratio_J6KO - dmR_ratio_HeLa, mu = 0)
+
+n.feature.th <- 0
+stoic.dt <- stoic.dt[total_n_feature_K > n.feature.th | total_n_feature_R > n.feature.th]
+
+stoic.dt[, uniprot_id := str_split_fixed(Accession, "\\|", n = 2)[, 1]]
+
+```
+
+## IDRs
+
+```{r load disorderd score, fig.width = 5}
+
+
+## stoic.dt <- merge(
+##     stoic.dt,
+##     all.iupred2.dt[, .(Accession, uniprot_id, position, residue, IUPRED2)],
+##     by = c("Accession", "uniprot_id", "position")
+## )
+
+## stoic.dt[, `:=`(
+##     IUPRED2_int = cut(IUPRED2, breaks = c(0, 0.25, 0.5, 0.75, 1)),
+##     ox_ratio_int = round(ox_ratio, digits = 1)
+## )]
+
+## ggplot(
+##     data = stoic.dt[grepl("HeLa", cell)],
+##     aes(
+##         x = IUPRED2,
+##         y = ox_ratio,
+##     )
+## ) +
+##     geom_point() +
+##     facet_grid( ~ cell) +
+##     theme_classic(12) +
+##     theme(
+##         legend.title = element_text(),
+##         legend.position = "bottom",
+##         aspect.ratio = 1
+##     ) +
+##     ggsci::scale_fill_aaas() +
+##     scale_y_continuous(labels = scales::percent_format()) +
+##     ylab("Proportion") +
+##     ggtitle("All detected proteins")
+
+
+## ggplot(
+##     data = stoic.dt[grepl("HeLa", cell)],
+##     aes(
+##         fill = IUPRED2_int,
+##         x = ox_ratio,
+##         group = IUPRED2_int
+##     )
+## ) +
+##     geom_histogram(
+##         position = "identity", 
+##         aes(y = stat(density) * 0.1), binwidth = 0.1
+##     ) +
+##     facet_grid(IUPRED2_int ~ cell) +
+##     theme_classic(12) +
+##     theme(
+##         legend.title = element_text(),
+##         legend.position = "bottom"
+##     ) +
+##     ggsci::scale_fill_aaas() +
+##     coord_cartesian(ylim = c(0, 0.05)) +
+##     scale_y_continuous(labels = scales::percent_format()) +
+##     ylab("Proportion") +
+##     ggtitle("All detected proteins")
+
+## ggplot(
+##     data = stoic.dt[grepl("HeLa", cell) & grepl("(BRD2|BRD3|BRD4)", Accession)],
+##     aes(
+##         fill = IUPRED2_int,
+##         x = ox_ratio,
+##         group = IUPRED2_int
+##     )
+## ) +
+##     geom_histogram(
+##         position = "identity", 
+##         aes(y = stat(density) * 0.1), binwidth = 0.1
+##     ) +
+##     facet_grid(IUPRED2_int ~ cell) +
+##     theme_classic(12) +
+##     theme(
+##         legend.title = element_text(),
+##         legend.position = "bottom"
+##     ) +
+##     ggsci::scale_fill_aaas() +
+##     coord_cartesian(ylim = c(0, 0.05)) +
+##     scale_y_continuous(labels = scales::percent_format()) +
+##     ylab("Proportion") +
+##     ggtitle("BRD2-3s only")
+
+
+```
+
+
+## K ratio
+
+
+```{r k ratio}
+
+## stoic.dt <- merge(
+##     stoic.dt,
+##     k.ratio.dt[, .(Accession, uniprot_id, position, K_ratio, K_ratio_score)],
+##     by = c("Accession", "uniprot_id", "position")
+## )
+
+```
+
+
+
+```{r plot K ratio, fig.width = 5}
+
+## stoic.dt[, K_ratio_int := cut(K_ratio, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1))]
+
+## ggplot(
+##     data = stoic.dt[grepl("HeLa", cell)],
+##     aes(
+##         x = factor(K_ratio),
+##         y = ox_ratio,
+##         fill = cell
+##     )
+## ) +
+##     geom_boxplot(outlier.shape = NA) +
+##     theme_classic(12) +
+##     theme(aspect.ratio = 1) +
+##     khroma::scale_fill_bright()
+
+## ggplot(
+##     data = stoic.dt[grepl("HeLa", cell)],
+##     aes(
+##         fill = K_ratio_int,
+##         x = ox_ratio,
+##         group = K_ratio_int
+##     )
+## ) +
+##     geom_histogram(
+##         position = "identity", 
+##         aes(y = stat(density) * 0.1), binwidth = 0.1
+##     ) +
+##     facet_grid(K_ratio_int ~ cell) +
+##     theme_classic(12) +
+##     theme(
+##         legend.title = element_text(),
+##         legend.position = "bottom"
+##     ) +
+##     ggsci::scale_fill_aaas() +
+##     ##coord_cartesian(ylim = c(0, 0.1)) +
+##     scale_y_continuous(labels = scales::percent_format()) +
+##     ylab("Proportion") +
+##     ggtitle("All detected proteins")
+
+
+## ggplot(
+##     data = stoic.dt[grepl("HeLa", cell) & grepl("(BRD2|BRD3|BRD4)", Accession)],
+##     aes(
+##         fill = K_ratio_int,
+##         x = ox_ratio,
+##         group = K_ratio_int
+##     )
+## ) +
+##     geom_histogram(
+##         position = "identity", 
+##         aes(y = stat(density) * 0.1), binwidth = 0.1
+##     ) +
+##     facet_grid(K_ratio_int ~ cell) +
+##     theme_classic(12) +
+##     theme(
+##         legend.title = element_text(),
+##         legend.position = "bottom"
+##     ) +
+##     ggsci::scale_fill_aaas() +
+##     ##coord_cartesian(ylim = c(0, 0.1)) +
+##     scale_y_continuous(labels = scales::percent_format()) +
+##     ylab("Proportion") +
+##     ggtitle("BRD2-3s")
+
+
+
+```
+
+
+```{r stoic data export}
+
+## fwrite(
+##     stoic.dt,
+##     file.path(j.b.res.dir, "hydroxylation_stoichiometry_summary_extended.csv")
+## )
+
+## wide.dt <- dcast(
+##     stoic.dt,
+##     Accession + position + uniprot_id + IUPRED2 + K_ratio + K_ratio_score ~ cell,
+##     value.var = c("ox_ratio", "total_n_feature_K", "total_n_feature_oxK")
+## )
+
+## library("BSgenome")
+
+## wide.dt[, `:=`(
+##     protein_sequence = BSgenome::getSeq(
+##                              x = all.protein.bs,
+##                              name = Accession
+##                          ) %>% as.character
+## )]
+
+## wide.dt[, `:=`(
+##     sequence = substr(protein_sequence, start = pmax(0, position - 10), stop = position + 10),
+##     protein_sequence = NULL
+## )]
+
+## left.cols <- c("Accession", "uniprot_id", "position", "sequence")
+
+## wide.dt <- wide.dt[, c(
+##     left.cols, colnames(wide.dt)[!(colnames(wide.dt) %in% left.cols)]
+## ), with = FALSE]
+
+## fwrite(
+##     wide.dt,
+##     file.path(j.b.res.dir, "hydroxylation_stoichiometry_summary_extended_wide.csv")
+## )
+
+
+```
+
+
+
+# Session information
+
+
+```{r session info}
+
+sessioninfo::session_info()
+
+
+```

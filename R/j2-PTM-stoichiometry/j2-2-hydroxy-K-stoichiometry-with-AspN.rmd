@@ -1,0 +1,304 @@
+---
+title: "Analysis of lysine hydroxylation stoichiometry for Asp-N data"
+author: "Yoichiro Sugimoto"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+vignette: >
+  %\VignetteIndexEntry{Bioconductor style for PDF documents}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+   html_document:
+     highlight: haddock
+     toc: yes
+     toc_depth: 2
+     keep_md: yes
+---
+
+Double checked
+
+BRD4 DOX+ manually calculated stoichiometry
+Position	All	hydroxy_K	%
+519	2.91E+07	0	0%
+535	3.78E+08	1.23E+08	33%
+537	3.78E+08	2.87E+08	76%
+538	3.78E+08	2.70E+08	71%
+539	3.78E+08	1.21E+08	32%
+541	3.78E+08	2.25E+08	59%
+
+
+
+# Package import
+
+
+```{r load packages, message = FALSE, warning = FALSE}
+
+library("data.table")
+library("ggplot2")
+library("ggprism")
+library("stringr")
+library("Biostrings")
+library("dplyr")
+library("GenomicRanges")
+
+processors <- 8
+
+## knitr setting
+library("knitr")
+opts_chunk$set(dev = c("png", "pdf"))
+
+```
+
+
+```{r dir create}
+
+create.dir <- function(dir.name){
+    if(dir.exists(dir.name) == FALSE) {
+        dir.create(dir.name)
+    }
+}
+
+create.dirs <- function(dirs){
+    for(dir.name in dirs){
+        create.dir(dir.name)
+    }
+}
+
+
+ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
+results.dir <- normalizePath(file.path("../../results"))
+
+j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
+j.b.res.dir <- file.path(results.dir, "j-b-stoichiometry")
+
+create.dirs(c(
+))
+
+```
+
+
+# Data import
+
+
+```{r fasta data}
+
+all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
+names(all.protein.bs) <- names(all.protein.bs) %>%
+    {gsub("sp\\|", "", .)} %>%
+    {str_split_fixed(., " ", n = 2)[, 1]}
+uniprot.accession.flag <- names(all.protein.bs) %>%
+    {str_split_fixed(., "\\|", n = 2)[, 2]} %>%
+    {nchar(.) > 0}
+all.protein.bs <- all.protein.bs[uniprot.accession.flag]
+
+pp.dt <- fread(
+    file.path("../../data/rawdata/protein_peptide_data/BRD4_AspN_Dox_FDR_and_Ion_Intensity_filter_protein-peptides.csv")
+)
+
+original.data.colnames <- c(
+    "MC48; No Dox", "MC50; Plus Dox; 21% O2", "MC52; Plus Dox; 1% O2", "MC54; Plus Dox; 0.1% O2"
+)
+
+new.data.colnames <- c(
+    "Dox_minus__Ox21", "Dox_plus_Ox21", "Dox_plus_Ox1", "Dox_plus_Ox01"
+)
+
+setnames(
+    pp.dt,
+    old = c(
+        "Protein Accession",
+        paste("Area", original.data.colnames), paste("#Feature", original.data.colnames)
+    ),
+    new = c(
+        "Accession",
+        paste0("Area__", new.data.colnames), paste0("n_feature__", new.data.colnames)
+    )
+)
+
+pp.dt[, `:=`(
+    Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide),
+    PTMs = str_split(PTM, "; ")
+)]
+
+pp.dt <- pp.dt[, c(
+    "Accession", "Start", "End", "Peptide",
+    paste0("Area__", new.data.colnames), paste0("n_feature__", new.data.colnames),
+    "PTMs"
+), with = FALSE]
+
+## Only analyse BRD4 ending at 541
+pp.dt <- pp.dt[
+    Accession == "O60885|BRD4_HUMAN" ##&
+    ## End == 541
+]
+
+area.pp.dt <- melt(
+    pp.dt,
+    id.vars = c("Accession", "Peptide", "Start", "End", "PTMs"),
+    measure.vars = paste0("Area__", new.data.colnames),
+    value.name = "Area"
+) %>%
+    {.[, sample_name := str_split_fixed(variable, "__", n = 2)[, 2]]}
+
+n.feature.pp.dt <- melt(
+    pp.dt,
+    id.vars = c("Accession", "Peptide", "Start", "End"),
+    measure.vars = paste0("n_feature__", new.data.colnames),
+    value.name = "n_feature"
+) %>%
+    {.[, sample_name := str_split_fixed(variable, "__", n = 2)[, 2]]}
+
+
+all.pp.dt <- merge(
+    area.pp.dt,
+    n.feature.pp.dt,
+    by = c("Accession", "Peptide", "Start", "End", "sample_name")
+)
+
+all.pp.dt <- all.pp.dt[
+    !is.na(Area) & Area > 0
+]
+
+
+all.pp.dt[
+  , corrected_peptide := gsub("\\(\\+\\.98\\)", "", Peptide) %>% # Remove (+.98)
+        {gsub("\\(\\+42\\.01\\)", "", .)} # Remove Acetylation from modification
+]
+
+all.pp.dt[
+  , corrected_peptide := case_when(
+        !any(PTMs[[1]] == "Oxidation (K)") ~
+            gsub("K\\(\\+15.99\\)","K", corrected_peptide),
+        TRUE ~ corrected_peptide
+    ) ## %>% {case_when(
+      ##          !any(PTMs[[1]] == "Oxidised Propionylation") ~
+      ##              gsub("K\\(\\+72.02\\)","K", .),
+      ##          TRUE ~ .
+    ##      )}
+   ,
+    by = seq_len(nrow(all.pp.dt))
+]
+
+all.pp.dt[, `:=`(
+    raw_peptide = gsub("\\s*\\([^\\)]+\\)","", Peptide),
+    k_info_peptide =
+        gsub(
+            names(AMINO_ACID_CODE) %>%
+            {.[. != "K"]} %>%
+            {paste(., collapse = "|")} %>%
+            {paste0("(", ., ")")}, 
+            "A", corrected_peptide # Non K amino acids will be replaced with A
+        ) %>%
+        {gsub("K\\(\\+56.03\\)", "K", .)} %>% 
+        {gsub("(K\\(\\+15.99\\)|K\\(\\+72.02\\))", "H", .)} %>% # H: hydroxylared K
+        {gsub("\\s*\\([^\\)]+\\)","", .)}
+)]
+
+all.pp.dt[, `:=`(
+    K_index = str_locate_all(k_info_peptide, "(K|H)") %>%
+        {lapply(., function(x) x[,2])},
+    oxK_index = str_locate_all(k_info_peptide, "H") %>%
+        {lapply(., function(x) x[,2])},
+    all_aa_index = str_locate_all(k_info_peptide, "(K|H|A)") %>%
+        {lapply(., function(x) x[,2])}
+)]
+
+```
+
+
+
+# Individual amino acid position
+
+
+```{r index to aa pos}
+
+indexToPosition <- function(index.name, dt){
+    dt <- copy(dt)
+    dt[, peptide_id := 1:.N]
+
+    dt[
+      , n_index := length(get(paste0(index.name, "_index"))[[1]]),
+        by = seq_len(nrow(dt)) 
+    ]
+
+    e.dt <- dt[rep(1:nrow(dt), times = n_index)]
+    e.dt[, index_pos_id := 1:.N, by = peptide_id]
+    e.dt[
+      , position_in_peptide :=
+            get(paste0(index.name, "_index"))[[1]][index_pos_id],
+        by = seq_len(nrow(e.dt))
+    ]
+
+    e.dt[, `:=`(
+        position = Start + position_in_peptide - 1,
+        aa_type = index.name
+    )]
+
+    e.dt <- e.dt[, c(
+        "sample_name", "Accession", "aa_type", "position", "Area", "n_feature"
+    ), with = FALSE]
+
+    pos.dt <- e.dt[, list(
+        total_count = .N,
+        total_area = sum(Area),
+        total_n_feature = sum(n_feature)
+    ), by = list(sample_name, Accession, aa_type, position)]
+
+    return(pos.dt)
+}
+
+
+all.pos.dt <- lapply(
+    c("K", "oxK", "all_aa"),
+    indexToPosition,
+    dt = all.pp.dt
+) %>%
+    rbindlist
+
+
+```
+
+
+
+# Analysis of stoichiometry and other features
+
+
+```{r calculate stoic}
+
+stoic.dt <- dcast(
+    all.pos.dt[aa_type %in% c("K", "oxK")],
+    formula = sample_name + Accession + position ~ aa_type,
+    value.var = c("total_area", "total_n_feature"),
+    fill = 0
+)
+
+stoic.dt[, `:=`(
+    ox_ratio = total_area_oxK / total_area_K
+)]
+
+
+wide.dt <- dcast(
+    stoic.dt,
+    Accession + position ~ sample_name,
+    value.var = c("ox_ratio", "total_n_feature_K", "total_n_feature_oxK")
+)
+
+
+fwrite(
+    wide.dt,
+    file.path(j.b.res.dir, "hydroxylation_stoichiometry_for_AspN_data.csv")
+)
+
+
+```
+
+
+
+# Session information
+
+
+```{r session info}
+
+sessioninfo::session_info()
+
+
+```

@@ -21,17 +21,20 @@ output:
 ```{r load packages, message = FALSE, warning = FALSE}
 
 temp <- sapply(list.files("../functions", full.names = TRUE), source)
+library("Biostrings")
 
 processors <- 8
 
-ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
+j2.1.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiometry")
+
 results.dir <- normalizePath(file.path("../../results"))
-
-
+j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
 j2.res.dir <- file.path(results.dir, "j2-PTM-stoichiometry")
+j2a.res.dir <- file.path(results.dir, "j2a-PTM-stoichiometry-K-only")
 
 create.dirs(c(
-    j2.res.dir
+    j2.res.dir,
+    j2a.res.dir
 ))
 
 ```
@@ -53,7 +56,7 @@ all.pp.dt <- lapply(
     function(x){
         dt <- fread(
             file.path(
-                "../../data/rawdata/DB_search_psm/",
+                j2.1.input.dir,
                 paste0(x, "__protein-peptides.csv")
             )
         )
@@ -70,14 +73,15 @@ all.pp.dt <- lapply(
             cell = x,
             Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
         )]
-        dt[, .(cell, Accession, Start, End, Peptide, Area, PTM, n_feature)]
+        dt[, .(cell, Accession, Start, End, Unique, Peptide, Area, PTM, n_feature)]
     }
 ) %>% rbindlist
 
 all.pp.dt[, cell := factor(cell, levels = cells)]
 
-all.iupred2.dt <- fread(file.path(j.a.res.dir, "IUPRED2_per_protein_and_position.csv"))
-k.ratio.dt <- fread(file.path(j.a.res.dir, "k_ratio_per_protein_and_position.csv"))
+all.protein.feature.per.pos.dt <- file.path(
+    j0.res.dir, "all_protein_feature_per_position.csv"
+) %>% fread
 
 ```
 
@@ -86,60 +90,118 @@ k.ratio.dt <- fread(file.path(j.a.res.dir, "k_ratio_per_protein_and_position.csv
 
 ## Preliminary checks
 
-
 ```{r preliminary checks}
 
-all.dt <- copy(all.pp.dt)
-print("All K related modifications")
-all.letters <- all.dt[, unlist(str_split(Peptide, "(?=[[:alpha:]])"))]
-all.letters <- all.letters[all.letters != ""]
-table(all.letters[grepl("^K", all.letters)])
-all.dt[, aa_list := str_split(Peptide, "(?=[[:alpha:]])")]
+countPTM <- function(all.pp.dt, peptide.col = "Peptide"){
 
-print("All PTMs")
-PTMs <- all.dt[, unlist(str_split(PTM, "; "))]
-PTMs <- PTMs[PTMs != ""]
-table(sort(PTMs))
+    all.dt <- copy(all.pp.dt)
+    
+    print("All K related modifications")
+    all.letters <- all.dt[, unlist(str_split(get(peptide.col), "(?=[[:alpha:]])"))]
+    all.letters <- all.letters[all.letters != ""]
+    print(table(all.letters[grepl("^K", all.letters)]))
+    all.dt[, aa_list := str_split(Peptide, "(?=[[:alpha:]])")]
+
+    print("All R related modifications")
+    all.letters <- all.dt[, unlist(str_split(get(peptide.col), "(?=[[:alpha:]])"))]
+    all.letters <- all.letters[all.letters != ""]
+    print(table(all.letters[grepl("^R", all.letters)]))
+    all.dt[, aa_list := str_split(Peptide, "(?=[[:alpha:]])")]
+
+    print("All PTMs")
+    PTMs <- all.dt[, unlist(str_split(PTM, "; "))]
+    PTMs <- PTMs[PTMs != ""]
+    print(table(sort(PTMs)))
+
+    return()
+}
+
+temp <- countPTM(all.pp.dt)
 
 ```
 
-## Filtration
+## Filtration and data processing
+
+The following filtration and data processing will be performed:
+
+1. Filter out non-unique peptide
+2. Filter out peptides with Area == 0
+3. Ignore acetylation
+   - (e.g.) Treat K(+42.01) as K or K(+42.01)(+15.99) as K(+15.99)
+4. Filter out peptides (1) with C-term propionylated K or dimethylated R and (2) without C-term K, hydroxyK, R or mono-methylated R
+   - di-methylated R is not cleaved by trypsin 
+5. Allow only 1 misclevage by trypsin 
+   - At most one occurrence of K, K(+15.99), R, R(+14.02) in the peptide
+   - Note that the following are allowed in the peptides
+	 - C terminal K, R, KP, RP
+	 - Propionylated K: K(+56.03), K(+72.02)
+	 - Dimethyl R: R(+28.03)
+6. The PTMs are assigned in the PTM column
 
 ```{r data filtration}
 
-filterDt <- function(all.dt){
-    
+filterPeptideData <- function(all.pp.dt){
+    require("Biostrings")
+
+    all.dt <- copy(all.pp.dt)
+
+    print("Input peptides per cells")
     print(all.dt[, table(cell)])
 
+    ## F1.
+    all.dt <- all.dt[Unique == "Y"]
+    print("Peptides per cells after filteration 1")
+    print(all.dt[, table(cell)])    
+
+    ## F2
     all.dt <- all.dt[
         Area > 0 &
-        Accession %in% names(all.protein.bs)
+        Accession %in% all.protein.feature.per.pos.dt[, unique(Accession)]
     ]
 
+    print("Peptides per cells after filtration 2")
     print(all.dt[, table(cell)])
 
-    ## Remove Acetylation from modification
+    ## F3. Remove Acetylation from modification
     all.dt[, corrected_peptide := gsub("\\(\\+42\\.01\\)", "", Peptide)]
+    print("After the filtration of acetylation (filteration 3)")
+    temp <- countPTM(all.dt, peptide.col = "corrected_peptide")
 
-    ## Filter out peptides with C-term propionylation and peptides which do not have C-term K, KOH or R
+    ## F4. Filter out peptides with C-term propionylation and peptides which do not have C-term K, KOH or R
     all.dt <- all.dt[
+    (
         str_count(corrected_peptide, "K\\(\\+56\\.03\\)$") +
-        str_count(corrected_peptide, "K\\(\\+72\\.02\\)$") == 0 &
-        (
-            str_count(corrected_peptide, "R$") == 1 |
-            str_count(corrected_peptide, "(K$|K\\(\\+15\\.99\\)$)") == 1 
-        )
+        str_count(corrected_peptide, "K\\(\\+72\\.02\\)$") +
+        str_count(corrected_peptide, "R\\(\\+28\\.03\\)$") == 0
+    ) &
+    (
+        str_count(corrected_peptide, "(R$|R\\(\\+14\\.02\\)$)") == 1 |
+        str_count(corrected_peptide, "(K$|K\\(\\+15\\.99\\)$)") == 1 
+    )
     ]
 
+    print("Peptides per cells after filtration 4")
     print(all.dt[, table(cell)])
 
-    ## Also K and K(+15.99) for at most one occurence in the peptide (with ignoring C terminus K and KP)
+    ## F5.
+    ##  Allow only 1 misclevage by trypsin 
+    ## - At most one occurrence of K, K(+15.99), R, R(+14.02) in the peptide
+    ## - Note that the following are allowed in the peptides
+    ##   - C terminal K, R, KP, RP
+    ##   - Propionylated K: K(+56.03), K(+72.02)
+    ##   - Dimethyl R: R(+28.03)
+
     all.dt[
       , Peptide_for_filtration := gsub(
-            "(K\\(\\+15\\.99\\)$|K$|R$)", "", corrected_peptide # C-term K or R is OK
+            "(K$|K\\(\\+15\\.99\\)$|R$|R\\(\\+14\\.02\\)$)",
+            "X",
+            corrected_peptide
+            ## C-term K or R is OK
         ) %>%        
             {gsub("K\\(\\+56\\.03\\)", "X", .)} %>%
             {gsub("K\\(\\+72\\.02\\)", "X", .)} %>%
+            {gsub("R\\(\\+28\\.03\\)$", "X", .)} %>%
+            ## The above modification prevents clevage by trypsin
             {gsub("\\s*\\([^\\)]+\\)", "", .)} %>%
             {gsub("KP", "XZ", .)} %>%
             {gsub("RP", "XZ", .)}
@@ -148,6 +210,7 @@ filterDt <- function(all.dt){
     all.dt <- all.dt[str_count(Peptide_for_filtration, "(K|R)") < 2]
     all.dt[, Peptide_for_filtration := NULL]
 
+    print("Peptides per cells after filtration 5")
     print(all.dt[, table(cell)])
 
     all.dt[, PTMs := str_split(PTM, "; ")]
@@ -157,14 +220,30 @@ filterDt <- function(all.dt){
             !any(PTMs[[1]] == "Oxidation (K)") ~
                 gsub("K\\(\\+15.99\\)","K", corrected_peptide),
             TRUE ~ corrected_peptide
-        ) %>% {case_when(
-                   !any(PTMs[[1]] == "Oxidised Propionylation") ~
-                       gsub("K\\(\\+72.02\\)","K", .),
-                   TRUE ~ .
-               )},
+        ) %>% {
+            case_when(
+                !any(PTMs[[1]] == "Oxidised Propionylation") ~
+                    gsub("K\\(\\+72.02\\)","K", .),
+                TRUE ~ .
+            )} %>% {
+                case_when(
+                    !any(PTMs[[1]] == "Methylation(R)") ~
+                        gsub("R\\(\\+14\\.02\\)", "R", .),
+                    TRUE ~ .
+                )
+            } %>% {
+                case_when(
+                    !any(PTMs[[1]] == "Dimethylation(R)") ~
+                        gsub("R\\(\\+28\\.03\\)", "R", .),
+                    TRUE ~ .
+                )},
         by = seq_len(nrow(all.dt))
     ]
 
+    print("Filtration 5 (PTM assignment)")
+    temp <- countPTM(all.dt, peptide.col = "corrected_peptide")
+
+    ## For calculation of stoichiometry
     all.dt[, `:=`(
         raw_peptide = gsub("\\s*\\([^\\)]+\\)","", Peptide),
         k_info_peptide =
@@ -177,6 +256,17 @@ filterDt <- function(all.dt){
             ) %>%
             {gsub("K\\(\\+56.03\\)", "K", .)} %>% 
             {gsub("(K\\(\\+15.99\\)|K\\(\\+72.02\\))", "H", .)} %>% # H: hydroxylared K
+            {gsub("\\s*\\([^\\)]+\\)","", .)},
+        r_info_peptide =
+            gsub(
+                names(AMINO_ACID_CODE) %>%
+                {.[. != "R"]} %>%
+                {paste(., collapse = "|")} %>%
+                {paste0("(", ., ")")}, 
+                "A", corrected_peptide # Non R amino acids will be replaced with A
+            ) %>%
+            {gsub("R\\(\\+14\\.02\\)", "M", .)} %>% # M: Monoaceyltation 
+            {gsub("R\\(\\+28\\.03\\)", "D", .)} %>% # D: dimethylation
             {gsub("\\s*\\([^\\)]+\\)","", .)}
     )]
 
@@ -186,11 +276,19 @@ filterDt <- function(all.dt){
         oxK_index = str_locate_all(k_info_peptide, "H") %>%
             {lapply(., function(x) x[,2])},
         all_aa_index = str_locate_all(k_info_peptide, "(K|H|A)") %>%
+            {lapply(., function(x) x[,2])},
+        R_index = str_locate_all(r_info_peptide, "(R|M|D)") %>%
+            {lapply(., function(x) x[,2])},
+        mR_index = str_locate_all(r_info_peptide, "M") %>%
+            {lapply(., function(x) x[,2])},
+        dmR_index = str_locate_all(r_info_peptide, "D") %>%
             {lapply(., function(x) x[,2])}
-    )]
+        )]
+
+    return(all.dt)
 }
 
-all.pp.dt <- filterDt(all.pp.dt)
+all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 
 
 ```
@@ -201,48 +299,54 @@ all.pp.dt <- filterDt(all.pp.dt)
 ```{r index to aa pos}
 
 indexToPosition <- function(index.name, dt){
+    
     dt <- copy(dt)
     dt[, peptide_id := 1:.N]
-
     dt[
       , n_index := length(get(paste0(index.name, "_index"))[[1]]),
         by = seq_len(nrow(dt)) 
     ]
 
-    e.dt <- dt[rep(1:nrow(dt), times = n_index)]
-    e.dt[, index_pos_id := 1:.N, by = peptide_id]
-    e.dt[
-      , position_in_peptide :=
-            get(paste0(index.name, "_index"))[[1]][index_pos_id],
-        by = seq_len(nrow(e.dt))
-    ]
+    if(dt[, sum(n_index)] > 0){
+        e.dt <- dt[rep(1:nrow(dt), times = n_index)]
+        e.dt[, index_pos_id := 1:.N, by = peptide_id]
+        e.dt[
+          , position_in_peptide :=
+                get(paste0(index.name, "_index"))[[1]][index_pos_id],
+            by = seq_len(nrow(e.dt))
+        ]
+        e.dt[, `:=`(
+            position = Start + position_in_peptide - 1,
+            aa_type = index.name
+        )]
+        e.dt <- e.dt[, c(
+            "cell", "Accession", "aa_type", "position", "Area", "n_feature"
+        ), with = FALSE]
 
-    e.dt[, `:=`(
-        position = Start + position_in_peptide - 1,
-        aa_type = index.name
-    )]
-
-    e.dt <- e.dt[, c(
-        "cell", "Accession", "aa_type", "position", "Area", "n_feature"
-    ), with = FALSE]
-
-    pos.dt <- e.dt[, list(
-        total_count = .N,
-        total_area = sum(Area),
-        total_n_feature = sum(n_feature)
-    ), by = list(cell, Accession, aa_type, position)]
+        pos.dt <- e.dt[, list(
+            total_count = .N,
+            total_area = sum(Area),
+            total_n_feature = sum(n_feature)
+        ), by = list(
+               cell, 
+               Accession, aa_type, position
+           )]
+    } else {
+        pos.dt <- data.table()
+    }
 
     return(pos.dt)
 }
 
-
 all.pos.dt <- lapply(
-    c("K", "oxK", "all_aa"),
+    c("K", "oxK", "R", "mR", "dmR", "all_aa"),
     indexToPosition,
-    dt = all.pp.dt
+    dt = all.indexed.pp.dt
 ) %>%
     rbindlist
 
+print("The number of amino acids and PTM analysed / identified.")
+all.pos.dt[total_area > 0, table(cell, aa_type)]
 
 ```
 
@@ -250,6 +354,7 @@ all.pos.dt <- lapply(
 
 # Analysis of stoichiometry and other features
 
+## K stoichiometry
 
 ```{r calculate stoic}
 
@@ -261,238 +366,53 @@ stoic.dt <- dcast(
 )
 
 stoic.dt[, `:=`(
-    ox_ratio = total_area_oxK / total_area_K
+    oxK_ratio = total_area_oxK / total_area_K
 )]
 
-fwrite(
+all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
+names(all.protein.bs) <- names(all.protein.bs) %>%
+    {gsub("sp\\|", "", .)} %>%
+    {str_split_fixed(., " ", n = 2)[, 1]}
+uniprot.accession.flag <- names(all.protein.bs) %>%
+    {str_split_fixed(., "\\|", n = 2)[, 2]} %>%
+    {nchar(.) > 0}
+all.protein.bs <- all.protein.bs[uniprot.accession.flag]
+
+stoic.dt[
+    , seq5 := BSgenome::getSeq(
+                          x = all.protein.bs,
+                          name = Accession
+                        ) %>% as.character %>%
+              substr(start = position - 5, stop = position + 5)
+]
+
+merge(
+    all.protein.feature.per.pos.dt,
     stoic.dt,
-    file.path(j2.res.dir, "hydroxylation_stoichiometry_summary.csv")
+    by = c("Accession", "position")
+) %>%
+    fwrite(file.path(j2a.res.dir, "long_K_stoichiometry_data.csv"))
+
+wide.stoic.dt <- dcast(
+    stoic.dt,
+    formula = Accession + position + seq5 ~ cell,
+    value.var = c(
+        "oxK_ratio",
+        grep("^total_area", colnames(stoic.dt), value = TRUE),
+        grep("^total_n_feature", colnames(stoic.dt), value = TRUE)
+    )
 )
 
-n.feature.th <- 0
-stoic.dt <- stoic.dt[total_n_feature_K > n.feature.th]
-
-stoic.dt[, uniprot_id := str_split_fixed(Accession, "\\|", n = 2)[, 1]]
+merge(
+    all.protein.feature.per.pos.dt,
+    wide.stoic.dt,
+    by = c("Accession", "position")
+) %>%
+    fwrite(
+        file.path(j2a.res.dir, "wide_K_stoichiometry_data.csv")
+    )
 
 ```
-
-## IDRs
-
-```{r load disorderd score, fig.width = 5}
-
-
-stoic.dt <- merge(
-    stoic.dt,
-    all.iupred2.dt[, .(Accession, uniprot_id, position, residue, IUPRED2)],
-    by = c("Accession", "uniprot_id", "position")
-)
-
-stoic.dt[, `:=`(
-    IUPRED2_int = cut(IUPRED2, breaks = c(0, 0.25, 0.5, 0.75, 1)),
-    ox_ratio_int = round(ox_ratio, digits = 1)
-)]
-
-ggplot(
-    data = stoic.dt[grepl("HeLa", cell)],
-    aes(
-        x = IUPRED2,
-        y = ox_ratio,
-    )
-) +
-    geom_point() +
-    facet_grid( ~ cell) +
-    theme_classic(12) +
-    theme(
-        legend.title = element_text(),
-        legend.position = "bottom",
-        aspect.ratio = 1
-    ) +
-    ggsci::scale_fill_aaas() +
-    scale_y_continuous(labels = scales::percent_format()) +
-    ylab("Proportion") +
-    ggtitle("All detected proteins")
-
-
-ggplot(
-    data = stoic.dt[grepl("HeLa", cell)],
-    aes(
-        fill = IUPRED2_int,
-        x = ox_ratio,
-        group = IUPRED2_int
-    )
-) +
-    geom_histogram(
-        position = "identity", 
-        aes(y = stat(density) * 0.1), binwidth = 0.1
-    ) +
-    facet_grid(IUPRED2_int ~ cell) +
-    theme_classic(12) +
-    theme(
-        legend.title = element_text(),
-        legend.position = "bottom"
-    ) +
-    ggsci::scale_fill_aaas() +
-    coord_cartesian(ylim = c(0, 0.05)) +
-    scale_y_continuous(labels = scales::percent_format()) +
-    ylab("Proportion") +
-    ggtitle("All detected proteins")
-
-ggplot(
-    data = stoic.dt[grepl("HeLa", cell) & grepl("(BRD2|BRD3|BRD4)", Accession)],
-    aes(
-        fill = IUPRED2_int,
-        x = ox_ratio,
-        group = IUPRED2_int
-    )
-) +
-    geom_histogram(
-        position = "identity", 
-        aes(y = stat(density) * 0.1), binwidth = 0.1
-    ) +
-    facet_grid(IUPRED2_int ~ cell) +
-    theme_classic(12) +
-    theme(
-        legend.title = element_text(),
-        legend.position = "bottom"
-    ) +
-    ggsci::scale_fill_aaas() +
-    coord_cartesian(ylim = c(0, 0.05)) +
-    scale_y_continuous(labels = scales::percent_format()) +
-    ylab("Proportion") +
-    ggtitle("BRD2-3s only")
-
-
-```
-
-
-## K ratio
-
-
-```{r k ratio}
-
-stoic.dt <- merge(
-    stoic.dt,
-    k.ratio.dt[, .(Accession, uniprot_id, position, K_ratio, K_ratio_score)],
-    by = c("Accession", "uniprot_id", "position")
-)
-
-```
-
-
-
-```{r plot K ratio, fig.width = 5}
-
-stoic.dt[, K_ratio_int := cut(K_ratio, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1))]
-
-ggplot(
-    data = stoic.dt[grepl("HeLa", cell)],
-    aes(
-        x = factor(K_ratio),
-        y = ox_ratio,
-        fill = cell
-    )
-) +
-    geom_boxplot(outlier.shape = NA) +
-    theme_classic(12) +
-    theme(aspect.ratio = 1) +
-    khroma::scale_fill_bright()
-
-ggplot(
-    data = stoic.dt[grepl("HeLa", cell)],
-    aes(
-        fill = K_ratio_int,
-        x = ox_ratio,
-        group = K_ratio_int
-    )
-) +
-    geom_histogram(
-        position = "identity", 
-        aes(y = stat(density) * 0.1), binwidth = 0.1
-    ) +
-    facet_grid(K_ratio_int ~ cell) +
-    theme_classic(12) +
-    theme(
-        legend.title = element_text(),
-        legend.position = "bottom"
-    ) +
-    ggsci::scale_fill_aaas() +
-    ##coord_cartesian(ylim = c(0, 0.1)) +
-    scale_y_continuous(labels = scales::percent_format()) +
-    ylab("Proportion") +
-    ggtitle("All detected proteins")
-
-
-ggplot(
-    data = stoic.dt[grepl("HeLa", cell) & grepl("(BRD2|BRD3|BRD4)", Accession)],
-    aes(
-        fill = K_ratio_int,
-        x = ox_ratio,
-        group = K_ratio_int
-    )
-) +
-    geom_histogram(
-        position = "identity", 
-        aes(y = stat(density) * 0.1), binwidth = 0.1
-    ) +
-    facet_grid(K_ratio_int ~ cell) +
-    theme_classic(12) +
-    theme(
-        legend.title = element_text(),
-        legend.position = "bottom"
-    ) +
-    ggsci::scale_fill_aaas() +
-    ##coord_cartesian(ylim = c(0, 0.1)) +
-    scale_y_continuous(labels = scales::percent_format()) +
-    ylab("Proportion") +
-    ggtitle("BRD2-3s")
-
-
-
-```
-
-
-```{r stoic data export}
-
-fwrite(
-    stoic.dt,
-    file.path(j2.res.dir, "hydroxylation_stoichiometry_summary_extended.csv")
-)
-
-wide.dt <- dcast(
-    stoic.dt,
-    Accession + position + uniprot_id + IUPRED2 + K_ratio + K_ratio_score ~ cell,
-    value.var = c("ox_ratio", "total_n_feature_K", "total_n_feature_oxK")
-)
-
-library("BSgenome")
-
-wide.dt[, `:=`(
-    protein_sequence = BSgenome::getSeq(
-                             x = all.protein.bs,
-                             name = Accession
-                         ) %>% as.character
-)]
-
-wide.dt[, `:=`(
-    sequence = substr(protein_sequence, start = pmax(0, position - 10), stop = position + 10),
-    protein_sequence = NULL
-)]
-
-left.cols <- c("Accession", "uniprot_id", "position", "sequence")
-
-wide.dt <- wide.dt[, c(
-    left.cols, colnames(wide.dt)[!(colnames(wide.dt) %in% left.cols)]
-), with = FALSE]
-
-fwrite(
-    wide.dt,
-    file.path(j2.res.dir, "hydroxylation_stoichiometry_summary_extended_wide.csv")
-)
-
-
-```
-
-
 
 # Session information
 

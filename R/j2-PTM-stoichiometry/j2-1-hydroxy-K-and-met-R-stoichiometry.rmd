@@ -15,41 +15,6 @@ output:
 ---
 
 
-# Package import
-
-
-```{r load packages, message = FALSE, warning = FALSE}
-
-library("data.table")
-library("ggplot2")
-library("ggprism")
-library("stringr")
-library("Biostrings")
-library("dplyr")
-library("GenomicRanges")
-
-processors <- 8
-
-temp <- sapply(list.files("../functions", full.names = TRUE), source)
-
-```
-
-
-```{r dir create}
-
-ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
-results.dir <- normalizePath(file.path("../../results"))
-
-j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
-j.b.res.dir <- file.path(results.dir, "j-b-stoichiometry")
-j.b.4.res.dir <- file.path(j.b.res.dir, "j-b-4-stoichiometry-with-MR")
-
-
-create.dirs(c(
-    j.b.4.res.dir
-))
-
-```
 
 
 # Data import

@@ -31,7 +31,7 @@ j2.1.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiome
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
 j2.res.dir <- file.path(results.dir, "j2-PTM-stoichiometry")
-j2.3.res.dir <- file.path(j2.res.dir, "j2-3-PTM-stoichiometry-K-and-methyl-R")
+j2.3.res.dir <- file.path(j2.res.dir, "j2-3-PTM-stoichiometry-K-and-R")
 
 create.dirs(c(
     j2.res.dir,

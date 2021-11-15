@@ -16,11 +16,9 @@ rawdata/
 Rawdata/
 annotation/
 results/
-data/The_Pathology_Atlas_data/
-data/FANTOM/
-data/others/
-data/TCGA/
-data/uniprot/
+data/j1-JMJD6-coIP
+data/j2-PTM-stoichiometry
+data/j3-properties-of-hydroxylation-sites
 ## ignore sofrware directory
 software/
 temp/

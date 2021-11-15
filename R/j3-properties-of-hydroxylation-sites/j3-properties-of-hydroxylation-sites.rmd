@@ -24,6 +24,7 @@ temp <- sapply(list.files("../functions", full.names = TRUE), source)
 
 library("Biostrings")
 library("GenomicRanges")
+library("readxl")
 
 processors <- 8
 
@@ -34,11 +35,12 @@ set.seed(1)
 
 ```{r dir create}
 
-ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
-results.dir <- normalizePath(file.path("../../results"))
+j3.input.dir <- file.path("../../data/j3-properties-of-hydroxylation-sites")
 
-j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
-j.b.res.dir <- file.path(results.dir, "j-b-stoichiometry")
+results.dir <- normalizePath(file.path("../../results"))
+j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
+j2.res.dir <- file.path(results.dir, "j2-PTM-stoichiometry")
+j2.1.res.dir <- file.path(j2.res.dir, "j2-1-PTM-stoichiometry-K-only")
 
 create.dirs(c(
 ))
@@ -48,8 +50,10 @@ create.dirs(c(
 
 # Data import
 
+## Annotation
 
-```{r fasta data}
+
+```{r annotation}
 
 all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
 names(all.protein.bs) <- names(all.protein.bs) %>%
@@ -60,24 +64,48 @@ uniprot.accession.flag <- names(all.protein.bs) %>%
     {nchar(.) > 0}
 all.protein.bs <- all.protein.bs[uniprot.accession.flag]
 
-cells <- c("HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD", "HeLa_WT_J6PD_2")
+all.protein.feature.per.pos.dt <- file.path(
+    j0.res.dir, "all_protein_feature_per_position.csv"
+) %>% fread
 
-library("readxl")
+```
 
+
+## Manually curated JMJD6 hydroxylation sites
+
+
+```{r manually curated hydroxylation sites}
 
 manually.curated.hydroxylation.dt <-
     file.path(
-        "../../data/processed_data/20210721_JMJD6_manually_curated_hydroxylation_site.xlsx"
+        j3.input.dir,
+        "20210721_JMJD6_manually_curated_hydroxylation_site.xlsx"
     ) %>%
     read_excel %>%
     data.table
 
 manually.curated.hydroxylation.dt <-
     manually.curated.hydroxylation.dt[, .(Accession, position)]
-manually.curated.hydroxylation.dt[, JMJD6_substrate_flag := "JMJD6_substrate"]
+
+manually.curated.hydroxylation.dt[
+  , JMJD6_substrate_flag := "JMJD6_substrate"
+]
+
+
+```
+
+## Stoichiometry data
+
+
+```{r stoichiometry data}
+
+cells <- c("HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD", "HeLa_WT_J6PD_2")
 
 stoichiometry.dt <- fread(
-    file.path(j.b.res.dir, "hydroxylation_stoichiometry_summary_extended.csv")
+    file.path(
+        j2.1.res.dir,
+        "long_K_stoichiometry_data.csv"
+    )
 )
 
 stoichiometry.dt <- merge(
@@ -87,21 +115,21 @@ stoichiometry.dt <- merge(
     by = c("Accession", "position")
 )
 
-stoichiometry.dt[, JMJD6_substrate_flag := case_when(
-               is.na(JMJD6_substrate_flag) ~ "Others",
-               TRUE ~ JMJD6_substrate_flag
-           )]
+stoichiometry.dt[, `:=`(
+    JMJD6_substrate_flag = case_when(
+        is.na(JMJD6_substrate_flag) ~ "Others",
+        TRUE ~ JMJD6_substrate_flag
+    ),
+    Accession_position = paste(Accession, position, sep = "_")
+)]
 
-all.biophysic.dt <- fread(file.path(j.a.res.dir, "biophysical_propety.csv"))
-setnames(all.biophysic.dt, old = "Position", new = "position")
 
-stoichiometry.dt <- merge(
-    all.biophysic.dt,
-    stoichiometry.dt,
-    all.y = TRUE,
-    by = c("Accession", "position")
-)
+```
 
+# Analysis of the properties of hydroxylation sites
+
+
+```{r fasta data}
 
 library("BSgenome")
 
@@ -128,9 +156,10 @@ stoichiometry.dt[, full_length_seq_flag := (
 )]
 
 left.cols <- c(
-    "cell", "Accession", "uniprot_id", "position", "sequence", "full_length_seq_flag",
+    "cell", "Accession", "uniprot_id", "position", "sequence",
+    "full_length_seq_flag",
     "JMJD6_substrate_flag",
-    "ox_ratio"
+    "oxK_ratio"
 )
 
 stoichiometry.dt <- stoichiometry.dt[, c(
@@ -151,12 +180,26 @@ stoichiometry.dt <- stoichiometry.dt[
 
 ```{r amino acid enrichment, fig.width = 7}
 
+
 non.duplicated.stoichiometry.dt <- stoichiometry.dt[
     full_length_seq_flag == TRUE &
     cell %in% c("HeLa_WT", "HeLa_WT_J6PD", "HeLa_WT_J6PD_2")
-][order(ox_ratio, decreasing = TRUE)][
+][
+    order(
+        JMJD6_substrate_flag == "JMJD6_substrate",
+        oxK_ratio,
+        decreasing = TRUE
+    )
+][
     !duplicated(paste(Accession, position))
 ]
+
+## Sanity checks
+non.duplicated.stoichiometry.dt[
+    JMJD6_substrate_flag == "JMJD6_substrate",
+    min(oxK_ratio)
+]
+non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 
 non.duplicated.stoichiometry.dt[
   , (paste0("position_", gsub("-", "m", seq(-10, 10)))) :=
@@ -164,7 +207,7 @@ non.duplicated.stoichiometry.dt[
     by = seq_len(nrow(non.duplicated.stoichiometry.dt))
 ]
 
-key.id.cols <- c("cell", "Accession", "position", "JMJD6_substrate_flag", "ox_ratio")
+key.id.cols <- c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
 
 m.non.duplicated.stoichiometry.dt <- melt(
     non.duplicated.stoichiometry.dt,
@@ -270,45 +313,10 @@ data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
 m.stoichiometry.dt <- melt(
     non.duplicated.stoichiometry.dt,
     measure.vars = data.cols,
-    id.vars = c("cell", "Accession", "position", "JMJD6_substrate_flag", "ox_ratio")
+    id.vars = c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
 )
 
 m.stoichiometry.dt[, Z_score := scale(value), by = variable]
-
-
-## ggplot(
-##     data = non.duplicated.stoichiometry.dt,
-##     aes(
-##         x = windowCharge,
-##         y = IUPRED2,
-##         size = ox_ratio + 0.01,
-##         fill = JMJD6_substrate_flag,
-##         color = grepl("BRD", Accession)
-##     )
-## ) +
-##     geom_jitter(shape = "circle filled", width = 0.04, height = 0) +
-##     gghighlight::gghighlight(
-##                      JMJD6_substrate_flag == "JMJD6_substrate",
-##                      use_direct_label = FALSE,
-##                      use_group_by = FALSE
-##                  ) +
-##     theme(
-##         aspect.ratio = 1,
-##         legend.position = "bottom",
-##         legend.direction = "vertical"
-##     ) +
-##     scale_size_continuous(name = "Hydroxylation rate [%]") +
-##     scale_fill_manual(values = c(
-##                           "JMJD6_substrate" = "#EE6677",
-##                           "Others" = "gray60"
-##                       ), name = "JMJD6 substrate") +
-##     scale_color_manual(values = c(
-##                            "TRUE" = "black",
-##                            "FALSE" = "gray60"
-##                        ), name = "BRDs") +
-##     xlab("Local charge") +
-##     ylab("Disordedness") +
-##     ggtitle("Biophysical propety around K")
 
 ggplot(
     data = non.duplicated.stoichiometry.dt[order(JMJD6_substrate_flag != "Others")],
@@ -317,7 +325,7 @@ ggplot(
         y = IUPRED2,
         size = ifelse(
             JMJD6_substrate_flag == "JMJD6_substrate",
-            ox_ratio + 0.01,
+            oxK_ratio + 0.01,
             0.01
         ),
         fill = JMJD6_substrate_flag,
@@ -358,123 +366,8 @@ ggplot(
     ylab("Disordedness") +
     ggtitle("Biophysical propety around K")
 
-## ggplot(
-##     data = non.duplicated.stoichiometry.dt,
-##     aes(
-##         x = K_ratio_score,
-##         y = IUPRED2,
-##         size = ox_ratio + 0.01,
-##         fill = JMJD6_substrate_flag,
-##         color = grepl("BRD", Accession)
-##     )
-## ) +
-##     geom_jitter(shape = "circle filled", width = 0.04, height = 0) +
-##     gghighlight::gghighlight(
-##                      JMJD6_substrate_flag == "JMJD6_substrate",
-##                      use_direct_label = FALSE,
-##                      use_group_by = FALSE
-##                  ) +
-##     theme(
-##         aspect.ratio = 1,
-##         legend.position = "bottom",
-##         legend.direction = "vertical"
-##     ) +
-##     scale_size_continuous(name = "Hydroxylation rate [%]") +
-##     scale_fill_manual(values = c(
-##                           "JMJD6_substrate" = "#EE6677",
-##                           "Others" = "gray60"
-##                       ), name = "JMJD6 substrate") +
-##     scale_color_manual(values = c(
-##                            "TRUE" = "black",
-##                            "FALSE" = "gray60"
-##                        ), name = "BRDs") +
-##     xlab("Local K ratio") +
-##     ylab("Disordedness") +
-##     ggtitle("Biophysical propety around K 2")
-
-## ggplot(
-##     data = non.duplicated.stoichiometry.dt,
-##     aes(
-##         x = K_ratio_score,
-##         y = windowCharge,
-##         size = ox_ratio + 0.01,
-##         fill = JMJD6_substrate_flag,
-##         color = grepl("BRD", Accession)
-##     )
-## ) +
-##     geom_jitter(shape = "circle filled", width = 0.04, height = 0.04) +
-##     gghighlight::gghighlight(
-##                      JMJD6_substrate_flag == "JMJD6_substrate",
-##                      use_direct_label = FALSE,
-##                      use_group_by = FALSE
-##                  ) +
-##     theme(
-##         aspect.ratio = 1,
-##         legend.position = "bottom",
-##         legend.direction = "vertical"
-##     ) +
-##     scale_size_continuous(name = "Hydroxylation rate [%]") +
-##     scale_fill_manual(values = c(
-##                           "JMJD6_substrate" = "#EE6677",
-##                           "Others" = "gray60"
-##                       ), name = "JMJD6 substrate") +
-##     scale_color_manual(values = c(
-##                            "TRUE" = "black",
-##                            "FALSE" = "gray60"
-##                        ), name = "BRDs") +
-##     xlab("Local K ratio") +
-##     ylab("Local charge") +
-##     ggtitle("Biophysical propety around K 3")
-
-
-## melt(
-##     non.duplicated.stoichiometry.dt,
-##     id.vars = c("Accession", "position", "JMJD6_substrate_flag"),
-##     measure.vars = c("windowCharge", "K_ratio_score")
-## ) %>%
-##     {.[, z_score := scale(value), by = variable]} %>%
-##     ggplot(
-##         aes(
-##             x = variable,
-##             y = z_score,
-##             fill = JMJD6_substrate_flag
-##         )
-##     ) +
-##     geom_boxplot(outlier.shape = NA) +
-##     scale_fill_bright()
-
-
 ```
 
-
-```{r plot all}
-
-## library("plotly")
-
-## non.duplicated.stoichiometry.dt[, `:=`(
-##     j_windowCharge = jitter(windowCharge, factor = 1, amount = 0.025),
-##     j_K_ratio_score = jitter(K_ratio_score, factor = 1, amount = 0.025),
-##     plot_flag = case_when(
-##         JMJD6_substrate_flag == "JMJD6_substrate" ~ TRUE,
-##         TRUE ~ sample(
-##             rep(c(TRUE, FALSE), times = c(1, 999)),
-##             size = nrow(non.duplicated.stoichiometry.dt),
-##             replace = TRUE
-##         )
-##     )
-## )]
-
-## plot_ly(
-##     data = non.duplicated.stoichiometry.dt[plot_flag == TRUE],
-##     x = ~ j_windowCharge,
-##     y = ~ j_K_ratio_score,
-##     z = ~ IUPRED2,
-##     ## size = ~ ox_ratio + 0.01,
-##     color = ~ JMJD6_substrate_flag,
-##     type = "scatter3d"
-## )
-
-```
 
 
 # Session information

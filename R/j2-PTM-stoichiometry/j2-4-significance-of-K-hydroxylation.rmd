@@ -18,7 +18,7 @@ output:
 # Load packages
 
 
-```{r load packages}
+```{r load packages, message = FALSE, warning = FALSE}
 
 temp <- sapply(list.files("../functions", full.names = TRUE), source)
 set.seed(0)
@@ -26,10 +26,15 @@ set.seed(0)
 library("readxl")
 library("exact2x2")
 
-results.dir <- file.path("../../results")
-jq.dir <- file.path(results.dir, "j-q-misc-analysis")
+j2.4.input.dir <- file.path("../../data/j2-PTM-stoichiometry/PTM-significance")
 
-create.dirs(c(jq.dir))
+results.dir <- file.path("../../results")
+j2.res.dir <- file.path(results.dir, "j2-PTM-stoichiometry")
+j2.4.res.dir <- file.path(j2.res.dir, "j2-4-significance-of-PTM")
+
+create.dirs(c(
+    j2.4.res.dir
+))
 
 ```
 
@@ -39,7 +44,10 @@ create.dirs(c(jq.dir))
 ```{r load data}
 
 count.dt <- read_xlsx(
-    "../../data/processed_data/Peptide_PD_data_for_fishers_test.xlsx",
+    file.path(
+        j2.4.input.dir,
+        "Peptide_PD_data_for_fishers_test.xlsx"
+    ),
     sheet = "new data"
 ) %>% as.data.table
 
@@ -84,15 +92,6 @@ count.dt[
     by = seq_len(nrow(count.dt))
 ]
 
-library("ggplot2")
-
-ggplot(
-    count.dt,
-    aes(
-        x = log10(fisher_p),
-        y = log10(boschloo_p)
-    )
-) + geom_point()
 
 count.dt[, `:=`(
     fisher_fdr = p.adjust(fisher_p, method = "fdr"),
@@ -101,7 +100,7 @@ count.dt[, `:=`(
 
 fwrite(
     count.dt,
-    file.path(jq.dir, "significance-of-hydroxylation-site-v2.csv")
+    file.path(j2.4.res.dir, "significance-of-hydroxylation-site-v2.csv")
 )
 
 

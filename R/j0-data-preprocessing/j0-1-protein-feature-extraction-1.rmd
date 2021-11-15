@@ -163,6 +163,8 @@ fwrite(
     file.path(j0.res.dir, "Max_IUPRED2_per_protein.csv")
 )
 
+temp <- do.call(file.remove, list(list.files(ind.fa.dir, full.names = TRUE)))
+temp <- do.call(file.remove, list(list.files(iupred2.dir, full.names = TRUE)))
 
 ```
 

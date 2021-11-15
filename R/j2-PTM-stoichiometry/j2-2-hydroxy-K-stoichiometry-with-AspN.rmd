@@ -33,6 +33,22 @@ Position	All	hydroxy_K	%
 
 ```{r load packages, message = FALSE, warning = FALSE}
 
+temp <- sapply(list.files("../functions", full.names = TRUE), source)
+temp <- sapply(list.files("./functions", full.names = TRUE), source)
+library("Biostrings")
+processors <- 8
+
+j2.2.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiometry_AspN")
+
+results.dir <- normalizePath(file.path("../../results"))
+j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
+j2.res.dir <- file.path(results.dir, "j2-PTM-stoichiometry")
+j2.2.res.dir <- file.path(j2.res.dir, "j2-2-PTM-stoichiometry-K-only-AspN")
+
+create.dirs(c(
+    j2.res.dir,
+    j2.2.res.dir
+))
 
 
 ```
@@ -43,17 +59,11 @@ Position	All	hydroxy_K	%
 
 ```{r fasta data}
 
-all.protein.bs <- readAAStringSet("../../data/all_protein.fasta")
-names(all.protein.bs) <- names(all.protein.bs) %>%
-    {gsub("sp\\|", "", .)} %>%
-    {str_split_fixed(., " ", n = 2)[, 1]}
-uniprot.accession.flag <- names(all.protein.bs) %>%
-    {str_split_fixed(., "\\|", n = 2)[, 2]} %>%
-    {nchar(.) > 0}
-all.protein.bs <- all.protein.bs[uniprot.accession.flag]
-
 pp.dt <- fread(
-    file.path("../../data/rawdata/protein_peptide_data/BRD4_AspN_Dox_FDR_and_Ion_Intensity_filter_protein-peptides.csv")
+    file.path(
+        j2.2.input.dir,
+        "BRD4_AspN_Dox_FDR_and_Ion_Intensity_filter_protein-peptides.csv"
+    )
 )
 
 original.data.colnames <- c(
@@ -68,11 +78,13 @@ setnames(
     pp.dt,
     old = c(
         "Protein Accession",
-        paste("Area", original.data.colnames), paste("#Feature", original.data.colnames)
+        paste("Area", original.data.colnames),
+        paste("#Feature", original.data.colnames)
     ),
     new = c(
         "Accession",
-        paste0("Area__", new.data.colnames), paste0("n_feature__", new.data.colnames)
+        paste0("Area__", new.data.colnames),
+        paste0("n_feature__", new.data.colnames)
     )
 )
 
@@ -82,24 +94,25 @@ pp.dt[, `:=`(
 )]
 
 pp.dt <- pp.dt[, c(
-    "Accession", "Start", "End", "Peptide",
+    "Accession", "Start", "End", "Unique", "Peptide", 
     paste0("Area__", new.data.colnames), paste0("n_feature__", new.data.colnames),
     "PTMs"
 ), with = FALSE]
 
-## Only analyse BRD4 ending at 541
+## Only analyse unique peptides and peptides from BRD4
 pp.dt <- pp.dt[
+    Unique == "Y" &
     Accession == "O60885|BRD4_HUMAN" ##&
     ## End == 541
 ]
 
 area.pp.dt <- melt(
     pp.dt,
-    id.vars = c("Accession", "Peptide", "Start", "End", "PTMs"),
+    id.vars = c("Accession", "Peptide", "Start", "End", "Unique", "PTMs"),
     measure.vars = paste0("Area__", new.data.colnames),
     value.name = "Area"
 ) %>%
-    {.[, sample_name := str_split_fixed(variable, "__", n = 2)[, 2]]}
+    {.[, cell := str_split_fixed(variable, "__", n = 2)[, 2]]}
 
 n.feature.pp.dt <- melt(
     pp.dt,
@@ -107,13 +120,13 @@ n.feature.pp.dt <- melt(
     measure.vars = paste0("n_feature__", new.data.colnames),
     value.name = "n_feature"
 ) %>%
-    {.[, sample_name := str_split_fixed(variable, "__", n = 2)[, 2]]}
+    {.[, cell := str_split_fixed(variable, "__", n = 2)[, 2]]}
 
 
 all.pp.dt <- merge(
     area.pp.dt,
     n.feature.pp.dt,
-    by = c("Accession", "Peptide", "Start", "End", "sample_name")
+    by = c("Accession", "Peptide", "Start", "End", "cell")
 )
 
 all.pp.dt <- all.pp.dt[
@@ -129,7 +142,7 @@ all.pp.dt[
 all.pp.dt[
   , corrected_peptide := case_when(
         !any(PTMs[[1]] == "Oxidation (K)") ~
-            gsub("K\\(\\+15.99\\)","K", corrected_peptide),
+            gsub("K\\(\\+15\\.99\\)","K", corrected_peptide),
         TRUE ~ corrected_peptide
     ) ## %>% {case_when(
       ##          !any(PTMs[[1]] == "Oxidised Propionylation") ~
@@ -150,8 +163,8 @@ all.pp.dt[, `:=`(
             {paste0("(", ., ")")}, 
             "A", corrected_peptide # Non K amino acids will be replaced with A
         ) %>%
-        {gsub("K\\(\\+56.03\\)", "K", .)} %>% 
-        {gsub("(K\\(\\+15.99\\)|K\\(\\+72.02\\))", "H", .)} %>% # H: hydroxylared K
+        {gsub("K\\(\\+56\\.03\\)", "K", .)} %>% 
+        {gsub("(K\\(\\+15\\.99\\)|K\\(\\+72\\.02\\))", "H", .)} %>% # H: hydroxylared K
         {gsub("\\s*\\([^\\)]+\\)","", .)}
 )]
 
@@ -173,42 +186,6 @@ all.pp.dt[, `:=`(
 
 ```{r index to aa pos}
 
-indexToPosition <- function(index.name, dt){
-    dt <- copy(dt)
-    dt[, peptide_id := 1:.N]
-
-    dt[
-      , n_index := length(get(paste0(index.name, "_index"))[[1]]),
-        by = seq_len(nrow(dt)) 
-    ]
-
-    e.dt <- dt[rep(1:nrow(dt), times = n_index)]
-    e.dt[, index_pos_id := 1:.N, by = peptide_id]
-    e.dt[
-      , position_in_peptide :=
-            get(paste0(index.name, "_index"))[[1]][index_pos_id],
-        by = seq_len(nrow(e.dt))
-    ]
-
-    e.dt[, `:=`(
-        position = Start + position_in_peptide - 1,
-        aa_type = index.name
-    )]
-
-    e.dt <- e.dt[, c(
-        "sample_name", "Accession", "aa_type", "position", "Area", "n_feature"
-    ), with = FALSE]
-
-    pos.dt <- e.dt[, list(
-        total_count = .N,
-        total_area = sum(Area),
-        total_n_feature = sum(n_feature)
-    ), by = list(sample_name, Accession, aa_type, position)]
-
-    return(pos.dt)
-}
-
-
 all.pos.dt <- lapply(
     c("K", "oxK", "all_aa"),
     indexToPosition,
@@ -228,7 +205,7 @@ all.pos.dt <- lapply(
 
 stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("K", "oxK")],
-    formula = sample_name + Accession + position ~ aa_type,
+    formula = cell + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
@@ -240,14 +217,14 @@ stoic.dt[, `:=`(
 
 wide.dt <- dcast(
     stoic.dt,
-    Accession + position ~ sample_name,
+    Accession + position ~ cell,
     value.var = c("ox_ratio", "total_n_feature_K", "total_n_feature_oxK")
 )
 
 
 fwrite(
     wide.dt,
-    file.path(j.b.res.dir, "hydroxylation_stoichiometry_for_AspN_data.csv")
+    file.path(j2.2.res.dir, "hydroxylation_stoichiometry_for_AspN_data.csv")
 )
 
 

@@ -14,7 +14,9 @@ output:
      keep_md: yes
 ---
 
-Double checked
+
+
+The following values were manually calculated to double check the outputs.
 
 BRD4 DOX+ manually calculated stoichiometry
 Position	All	hydroxy_K	%
@@ -27,51 +29,11 @@ Position	All	hydroxy_K	%
 
 
 
-# Package import
-
+# Environment setup
 
 ```{r load packages, message = FALSE, warning = FALSE}
 
-library("data.table")
-library("ggplot2")
-library("ggprism")
-library("stringr")
-library("Biostrings")
-library("dplyr")
-library("GenomicRanges")
 
-processors <- 8
-
-## knitr setting
-library("knitr")
-opts_chunk$set(dev = c("png", "pdf"))
-
-```
-
-
-```{r dir create}
-
-create.dir <- function(dir.name){
-    if(dir.exists(dir.name) == FALSE) {
-        dir.create(dir.name)
-    }
-}
-
-create.dirs <- function(dirs){
-    for(dir.name in dirs){
-        create.dir(dir.name)
-    }
-}
-
-
-ind.fa.dir <- file.path("../../data/processed_data/individual_fastas")
-results.dir <- normalizePath(file.path("../../results"))
-
-j.a.res.dir <- file.path(results.dir, "j-a-data-preprocessing")
-j.b.res.dir <- file.path(results.dir, "j-b-stoichiometry")
-
-create.dirs(c(
-))
 
 ```
 

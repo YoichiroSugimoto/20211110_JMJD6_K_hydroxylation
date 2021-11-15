@@ -1,5 +1,5 @@
 ---
-title: "j2-1 Stoichiometry of lysine hydroxylations"
+title: "j2-3 Analysis of the stoichiometry of lysine hydroxylation and arginine methylation"
 author: "Yoichiro Sugimoto"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 vignette: >
@@ -31,11 +31,11 @@ j2.1.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiome
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
 j2.res.dir <- file.path(results.dir, "j2-PTM-stoichiometry")
-j2.1.res.dir <- file.path(j2.res.dir, "j2-1-PTM-stoichiometry-K-only")
+j2.3.res.dir <- file.path(j2.res.dir, "j2-3-PTM-stoichiometry-K-and-methyl-R")
 
 create.dirs(c(
     j2.res.dir,
-    j2.1.res.dir
+    j2.3.res.dir
 ))
 
 ```
@@ -46,19 +46,20 @@ create.dirs(c(
 
 ```{r fasta data}
 
-cells <- c(
-    "HeLa_WT", "HeLa_J6KO",
-    "HEK293", "MCF7",
-    "HeLa_WT_J6PD", "HeLa_J6KO_J6PD", "HeLa_WT_J6PD_2"
+input.names <- c(
+    "JQ1_J6KO" = "HeLa_J6KO_JQ1PD",
+    "JQ1_HeLa" = "HeLa_WT_JQ1PD",
+    "J6_J6KO" = "HeLa_J6KO_J6PD",
+    "J6_HeLa" = "HeLa_WT_J6PD"
 )
 
-all.pp.dt <- lapply(
-    cells,
+all.pp.dt<- lapply(
+    1:length(input.names),
     function(x){
         dt <- fread(
-            file.path(
-                j2.1.input.dir,
-                paste0(x, "__protein-peptides.csv")
+            paste0(
+                "../../data/j2-PTM-stoichiometry/hydroxyK-methylR-stoichiometry/MethylR_",
+                names(input.names)[x], "_protein-peptides.csv"
             )
         )
         setnames(
@@ -71,14 +72,14 @@ all.pp.dt <- lapply(
             new = c("Accession", "Area", "n_feature")
         )
         dt[, `:=`(
-            cell = x,
+            cell = input.names[x],
             Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
         )]
         dt[, .(cell, Accession, Start, End, Unique, Peptide, Area, PTM, n_feature)]
     }
 ) %>% rbindlist
 
-all.pp.dt[, cell := factor(cell, levels = cells)]
+all.pp.dt[, cell := factor(cell, levels = input.names)]
 
 all.protein.feature.per.pos.dt <- file.path(
     j0.res.dir, "all_protein_feature_per_position.csv"
@@ -117,9 +118,7 @@ The following filtration and data processing will be performed:
 
 ```{r data filtration}
 
-
 all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
-
 
 ```
 
@@ -181,7 +180,7 @@ merge(
     stoic.dt,
     by = c("Accession", "position")
 ) %>%
-    fwrite(file.path(j2.1.res.dir, "long_K_stoichiometry_data.csv"))
+    fwrite(file.path(j2.3.res.dir, "long_K_stoichiometry_data.csv"))
 
 wide.stoic.dt <- dcast(
     stoic.dt,
@@ -199,10 +198,63 @@ merge(
     by = c("Accession", "position")
 ) %>%
     fwrite(
-        file.path(j2.1.res.dir, "wide_K_stoichiometry_data.csv")
+        file.path(j2.3.res.dir, "wide_K_stoichiometry_data.csv")
     )
 
 ```
+
+## R stoichiometry
+
+```{r calculate R stoic}
+
+stoic.dt <- dcast(
+    all.pos.dt[aa_type %in% c("R", "mR", "dmR")],
+    formula = cell + Accession + position ~ aa_type,
+    value.var = c("total_area", "total_n_feature"),
+    fill = 0
+)
+
+stoic.dt[, `:=`(
+    mR_ratio = total_area_mR / total_area_R,
+    dmR_ratio = total_area_dmR / total_area_R
+)]
+
+stoic.dt[
+    , seq5 := BSgenome::getSeq(
+                          x = all.protein.bs,
+                          name = Accession
+                        ) %>% as.character %>%
+              substr(start = position - 5, stop = position + 5)
+]
+
+merge(
+    all.protein.feature.per.pos.dt,
+    stoic.dt,
+    by = c("Accession", "position")
+) %>%
+    fwrite(file.path(j2.3.res.dir, "long_R_stoichiometry_data.csv"))
+
+wide.stoic.dt <- dcast(
+    stoic.dt,
+    formula = Accession + position + seq5 ~ cell,
+    value.var = c(
+        "mR_ratio", "dmR_ratio",
+        grep("^total_area", colnames(stoic.dt), value = TRUE),
+        grep("^total_n_feature", colnames(stoic.dt), value = TRUE)
+    )
+)
+
+merge(
+    all.protein.feature.per.pos.dt,
+    wide.stoic.dt,
+    by = c("Accession", "position")
+) %>%
+    fwrite(
+        file.path(j2.3.res.dir, "wide_K_stoichiometry_data.csv")
+    )
+
+```
+
 
 # Session information
 

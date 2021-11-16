@@ -1,7 +1,7 @@
 ---
 title: "j0-2 Protein feature extraction 2"
 author: "Yoichiro Sugimoto"
-date: "11 November, 2021"
+date: "15 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -16,7 +16,8 @@ output:
 
 # Introduction 
 
-Additional biophysical properties of proteins such as local charge will be analysed.
+
+Additional biophysical properties of proteins will be analysed.
 
 
 # Environment setup
@@ -134,7 +135,7 @@ all.biophysic.dt <- merge(
 fwrite(
     all.biophysic.dt,
     file.path(
-        j0.res.dir, "biophysical_propety.csv"
+        j0.res.dir, "biophysical_property.csv"
     )
 )
 ```
@@ -160,7 +161,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-11                  
+##  date     2021-11-15                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package          * version  date       lib source        

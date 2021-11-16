@@ -278,32 +278,6 @@ temp <- calculateLettersIn10merRatio(
 
 ```
 
-# Others
-
-
-```{r kr and others ratio}
-
-temp <- calculateLettersIn10merRatio(
-    sl.aa.letters = c("K", "R"),
-    all.protein.bs = all.protein.bs,
-    window.size = 10
-)
-
-temp <- calculateLettersIn10merRatio(
-    sl.aa.letters = c("K", "R", "S"),
-    all.protein.bs = all.protein.bs,
-    window.size = 10
-)
-
-temp <- calculateLettersIn10merRatio(
-    sl.aa.letters = c("K", "R", "S", "H"),
-    all.protein.bs = all.protein.bs,
-    window.size = 10
-)
-
-
-```
-
 
 
 # Session information

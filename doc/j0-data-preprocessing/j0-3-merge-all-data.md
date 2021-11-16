@@ -1,7 +1,7 @@
 ---
 title: "j0-3. Summary of Protein feature analyses"
 author: "Yoichiro Sugimoto"
-date: "11 November, 2021"
+date: "15 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,7 +15,7 @@ output:
 ---
 
 
-# Package import
+# Environment setup
 
 
 
@@ -49,7 +49,7 @@ k.ratio.dt <-
     file.path(j0.res.dir, "K_ratio_per_protein_and_position.csv") %>%
     fread
 
-all.biophysic.dt <- fread(file.path(j0.res.dir, "biophysical_propety.csv"))
+all.biophysic.dt <- fread(file.path(j0.res.dir, "biophysical_property.csv"))
 setnames(all.biophysic.dt, "Position", "position")
 
 all.protein.feature.per.pos.dt <- merge(
@@ -104,7 +104,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-11                  
+##  date     2021-11-15                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package     * version date       lib source        

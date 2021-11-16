@@ -1,7 +1,7 @@
 ---
 title: "j0-1. Protein feature extraction (1/2)"
 author: "Yoichiro Sugimoto"
-date: "11 November, 2021"
+date: "15 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -166,6 +166,9 @@ fwrite(
     max.iupred2.dt,
     file.path(j0.res.dir, "Max_IUPRED2_per_protein.csv")
 )
+
+temp <- do.call(file.remove, list(list.files(ind.fa.dir, full.names = TRUE)))
+temp <- do.call(file.remove, list(list.files(iupred2.dir, full.names = TRUE)))
 ```
 
 # K ratio
@@ -320,7 +323,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-11                  
+##  date     2021-11-15                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package          * version  date       lib source        

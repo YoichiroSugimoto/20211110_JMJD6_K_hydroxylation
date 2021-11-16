@@ -250,7 +250,7 @@ merge(
     by = c("Accession", "position")
 ) %>%
     fwrite(
-        file.path(j2.3.res.dir, "wide_K_stoichiometry_data.csv")
+        file.path(j2.3.res.dir, "wide_R_stoichiometry_data.csv")
     )
 
 ```

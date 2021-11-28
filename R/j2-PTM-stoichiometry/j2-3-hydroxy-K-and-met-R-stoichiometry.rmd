@@ -26,7 +26,7 @@ library("Biostrings")
 
 processors <- 8
 
-j2.1.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiometry")
+j2.3.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-methylR-stoichiometry")
 
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
@@ -47,10 +47,10 @@ create.dirs(c(
 ```{r fasta data}
 
 input.names <- c(
-    "JQ1_J6KO" = "HeLa_J6KO_JQ1PD",
-    "JQ1_HeLa" = "HeLa_WT_JQ1PD",
-    "J6_J6KO" = "HeLa_J6KO_J6PD",
-    "J6_HeLa" = "HeLa_WT_J6PD"
+    "JQ1_HeLa",
+    "JQ1_J6KO",
+    "J6_HeLa",
+    "J6_J6KO"
 )
 
 all.pp.dt<- lapply(
@@ -58,8 +58,9 @@ all.pp.dt<- lapply(
     function(x){
         dt <- fread(
             paste0(
-                "../../data/j2-PTM-stoichiometry/hydroxyK-methylR-stoichiometry/MethylR_",
-                names(input.names)[x], "_protein-peptides.csv"
+                j2.3.input.dir,
+                "/MethylR_and_HydroxK_",
+                input.names[x], ".csv"
             )
         )
         setnames(

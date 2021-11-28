@@ -49,7 +49,7 @@ create.dirs(c(
 cells <- c(
     "HeLa_WT", "HeLa_J6KO",
     "HEK293", "MCF7",
-    "HeLa_WT_J6PD", "HeLa_J6KO_J6PD", "HeLa_WT_J6PD_2"
+    "HeLa_WT_J6PD", "HeLa_J6KO_J6PD"
 )
 
 all.pp.dt <- lapply(
@@ -168,13 +168,42 @@ uniprot.accession.flag <- names(all.protein.bs) %>%
     {nchar(.) > 0}
 all.protein.bs <- all.protein.bs[uniprot.accession.flag]
 
+
+a.range <- 5
+
 stoic.dt[
     , seq5 := BSgenome::getSeq(
                           x = all.protein.bs,
                           name = Accession
                         ) %>% as.character %>%
-              substr(start = position - 5, stop = position + 5)
+              substr(start = position - a.range, stop = position + a.range)
 ]
+
+stoic.dt[, seq_nchar := nchar(seq5)]
+
+## Met filter
+stoic.dt[, `:=`(
+    MW_within_1 = substr(
+        seq5,
+        start = min(a.range, position - 1),
+        stop = min(a.range, position - 1) + 2
+    ) %>%
+        str_count(pattern = "(M|W)") > 0,
+    MW_within_2 = substr(
+        seq5,
+        start = min(a.range, position - 2),
+        stop = min(a.range, position - 2) + 4
+    ) %>%
+        str_count(pattern = "(M|W)") > 0    
+), by = seq_len(nrow(stoic.dt))]
+
+stoic.dt[, `:=`(
+    oxK_ratio = case_when(
+        MW_within_1 == TRUE ~ 0,
+        MW_within_2 == TRUE ~ 0,
+        TRUE ~ oxK_ratio
+    )
+)]
 
 merge(
     all.protein.feature.per.pos.dt,

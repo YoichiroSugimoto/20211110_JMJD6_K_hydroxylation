@@ -148,14 +148,14 @@ all.pos.dt[total_area > 0, table(cell, aa_type)]
 
 ```{r calculate stoic}
 
-stoic.dt <- dcast(
+k.stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("K", "oxK")],
     formula = cell + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
 
-stoic.dt[, `:=`(
+k.stoic.dt[, `:=`(
     oxK_ratio = total_area_oxK / total_area_K
 )]
 
@@ -168,34 +168,60 @@ uniprot.accession.flag <- names(all.protein.bs) %>%
     {nchar(.) > 0}
 all.protein.bs <- all.protein.bs[uniprot.accession.flag]
 
-stoic.dt[
+a.range <- 5
+
+k.stoic.dt[
     , seq5 := BSgenome::getSeq(
                           x = all.protein.bs,
                           name = Accession
                         ) %>% as.character %>%
-              substr(start = position - 5, stop = position + 5)
+              substr(start = position - a.range, stop = position + a.range)
 ]
+
+## MW filter
+k.stoic.dt[, `:=`(
+    MW_within_1 = substr(
+        seq5,
+        start = min(a.range, position - 1),
+        stop = min(a.range, position - 1) + 2
+    ) %>%
+        str_count(pattern = "(M|W)") > 0,
+    MW_within_2 = substr(
+        seq5,
+        start = min(a.range, position - 2),
+        stop = min(a.range, position - 2) + 4
+    ) %>%
+        str_count(pattern = "(M|W)") > 0    
+), by = seq_len(nrow(stoic.dt))]
+
+k.stoic.dt[, `:=`(
+    oxK_ratio = case_when(
+        MW_within_1 == TRUE ~ 0,
+        MW_within_2 == TRUE ~ 0,
+        TRUE ~ oxK_ratio
+    )
+)]
 
 merge(
     all.protein.feature.per.pos.dt,
-    stoic.dt,
+    k.stoic.dt,
     by = c("Accession", "position")
 ) %>%
     fwrite(file.path(j2.3.res.dir, "long_K_stoichiometry_data.csv"))
 
-wide.stoic.dt <- dcast(
-    stoic.dt,
+wide.k.stoic.dt <- dcast(
+    k.stoic.dt,
     formula = Accession + position + seq5 ~ cell,
     value.var = c(
         "oxK_ratio",
-        grep("^total_area", colnames(stoic.dt), value = TRUE),
-        grep("^total_n_feature", colnames(stoic.dt), value = TRUE)
+        grep("^total_area", colnames(k.stoic.dt), value = TRUE),
+        grep("^total_n_feature", colnames(k.stoic.dt), value = TRUE)
     )
 )
 
 merge(
     all.protein.feature.per.pos.dt,
-    wide.stoic.dt,
+    wide.k.stoic.dt,
     by = c("Accession", "position")
 ) %>%
     fwrite(

@@ -179,9 +179,7 @@ stoic.dt[
               substr(start = position - a.range, stop = position + a.range)
 ]
 
-stoic.dt[, seq_nchar := nchar(seq5)]
-
-## Met filter
+## MW filter
 stoic.dt[, `:=`(
     MW_within_1 = substr(
         seq5,

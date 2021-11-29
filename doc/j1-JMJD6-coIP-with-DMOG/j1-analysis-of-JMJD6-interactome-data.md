@@ -1,7 +1,7 @@
 ---
 title: "j1 Analysis of JMJD6 co-IP data with DMOG treatment"
 author: "Yoichiro Sugimoto"
-date: "15 November, 2021"
+date: "28 November, 2021"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
@@ -152,7 +152,7 @@ gene.name.dt <- log2.abundance.dt[, uniprot_id] %>%
 ```
 
 ```
-## Getting extra data for Q2NL82, Q2TAY7, Q2TBE0... (174 total)
+## Getting extra data for Q2TAY7, Q2TBE0, Q3B726... (173 total)
 ```
 
 ```

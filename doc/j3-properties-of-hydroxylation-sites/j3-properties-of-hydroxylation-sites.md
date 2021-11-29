@@ -1,7 +1,7 @@
 ---
 title: "Analysis of lysine hydroxylation stoichiometry and protein features"
 author: "Yoichiro Sugimoto"
-date: "15 November, 2021"
+date: "29 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -199,7 +199,7 @@ non.duplicated.stoichiometry.dt[
 ```
 
 ```
-## [1] 6.231538e-06
+## [1] 0
 ```
 
 ```r
@@ -207,7 +207,7 @@ non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 ```
 
 ```
-## Empty data.table (0 rows and 21 cols): cell,Accession,uniprot_id,position,sequence,full_length_seq_flag...
+## Empty data.table (0 rows and 23 cols): cell,Accession,uniprot_id,position,sequence,full_length_seq_flag...
 ```
 
 ```r
@@ -401,7 +401,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-15                  
+##  date     2021-11-29                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

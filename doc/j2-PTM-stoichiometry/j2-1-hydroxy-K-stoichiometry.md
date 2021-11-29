@@ -1,7 +1,7 @@
 ---
 title: "j2-1 Stoichiometry of lysine hydroxylations"
 author: "Yoichiro Sugimoto"
-date: "15 November, 2021"
+date: "29 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -48,7 +48,7 @@ create.dirs(c(
 cells <- c(
     "HeLa_WT", "HeLa_J6KO",
     "HEK293", "MCF7",
-    "HeLa_WT_J6PD", "HeLa_J6KO_J6PD", "HeLa_WT_J6PD_2"
+    "HeLa_WT_J6PD", "HeLa_J6KO_J6PD"
 )
 
 all.pp.dt <- lapply(
@@ -98,25 +98,25 @@ temp <- countPTM(all.pp.dt)
 ## [1] "All K related modifications"
 ## 
 ##                 K         K(+15.99) K(+15.99)(+42.01)         K(+42.01) 
-##            105967              5687                 5               276 
+##             98828              4477                 1               274 
 ## K(+42.01)(+15.99) K(+42.01)(+56.03) K(+42.01)(+72.02)         K(+56.03) 
-##               122               189               130            244643 
+##               122               189               130            227048 
 ## K(+56.03)(+42.01)         K(+72.02) K(+72.02)(+42.01) 
-##                31             19490                 9 
+##                25             16917                 6 
 ## [1] "All R related modifications"
 ## 
 ##         R R(+42.01) 
-##    216335        68 
+##    193460        62 
 ## [1] "All PTMs"
 ## 
 ##         Acetylation (N-term) Acetylation (Protein N-term) 
-##                         1923                          932 
+##                         1923                          689 
 ##         Carbamidomethylation             Deamidation (NQ) 
-##                         3303                        12292 
+##                         3303                        11180 
 ##                Oxidation (K)               Oxidation (MW) 
-##                          241                        26153 
+##                          212                        23931 
 ##      Oxidised Propionylation               Propionylation 
-##                         2022                       109312
+##                         1721                       101519
 ```
 
 ## Filtration and data processing
@@ -147,70 +147,70 @@ all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 ## cell
 ##        HeLa_WT      HeLa_J6KO         HEK293           MCF7   HeLa_WT_J6PD 
 ##          24108          26136           5564           6982          73851 
-## HeLa_J6KO_J6PD HeLa_WT_J6PD_2 
-##          94827          24915 
+## HeLa_J6KO_J6PD 
+##          94827 
 ## [1] "Peptides per cells after filteration 1"
 ## cell
 ##        HeLa_WT      HeLa_J6KO         HEK293           MCF7   HeLa_WT_J6PD 
 ##          22754          24032           4765           5969          66123 
-## HeLa_J6KO_J6PD HeLa_WT_J6PD_2 
-##          84717          22947 
+## HeLa_J6KO_J6PD 
+##          84717 
 ## [1] "Peptides per cells after filtration 2"
 ## cell
 ##        HeLa_WT      HeLa_J6KO         HEK293           MCF7   HeLa_WT_J6PD 
 ##          18332          19075           4434           5414          59245 
-## HeLa_J6KO_J6PD HeLa_WT_J6PD_2 
-##          76529          20601 
+## HeLa_J6KO_J6PD 
+##          76529 
 ## [1] "After the filtration of acetylation (filteration 3)"
 ## [1] "All K related modifications"
 ## 
 ##         K K(+15.99) K(+56.03) K(+72.02) 
-##     81559      3241    193187     12487 
+##     76241      2537    177775     10619 
 ## [1] "All R related modifications"
 ## 
 ##      R 
-## 170818 
+## 151791 
 ## [1] "All PTMs"
 ## 
 ##         Acetylation (N-term) Acetylation (Protein N-term) 
-##                         1474                          743 
+##                         1474                          515 
 ##         Carbamidomethylation             Deamidation (NQ) 
-##                         2461                         8454 
+##                         2461                         7630 
 ##                Oxidation (K)               Oxidation (MW) 
-##                          172                        21514 
+##                          158                        19573 
 ##      Oxidised Propionylation               Propionylation 
-##                         1446                        89620 
+##                         1187                        82570 
 ## [1] "Peptides per cells after filtration 4"
 ## cell
 ##        HeLa_WT      HeLa_J6KO         HEK293           MCF7   HeLa_WT_J6PD 
 ##          17842          18657           4265           5267          57717 
-## HeLa_J6KO_J6PD HeLa_WT_J6PD_2 
-##          74667          19789 
+## HeLa_J6KO_J6PD 
+##          74667 
 ## [1] "Peptides per cells after filtration 5"
 ## cell
 ##        HeLa_WT      HeLa_J6KO         HEK293           MCF7   HeLa_WT_J6PD 
 ##          16930          17507           4056           4946          56869 
-## HeLa_J6KO_J6PD HeLa_WT_J6PD_2 
-##          73559          19221 
+## HeLa_J6KO_J6PD 
+##          73559 
 ## [1] "Filtration 5 (PTM assignment)"
 ## [1] "All K related modifications"
 ## 
 ##         K K(+15.99) K(+56.03) K(+72.02) 
-##     82810       141    181006      1618 
+##     76715       131    166727      1283 
 ## [1] "All R related modifications"
 ## 
 ##      R 
-## 160854 
+## 143157 
 ## [1] "All PTMs"
 ## 
 ##         Acetylation (N-term) Acetylation (Protein N-term) 
-##                         1407                          710 
+##                         1407                          494 
 ##         Carbamidomethylation             Deamidation (NQ) 
-##                         2409                         8073 
+##                         2409                         7294 
 ##                Oxidation (K)               Oxidation (MW) 
-##                          130                        20839 
+##                          120                        18946 
 ##      Oxidised Propionylation               Propionylation 
-##                         1303                        85896
+##                         1075                        79112
 ```
 
 # Individual amino acid position
@@ -245,7 +245,6 @@ all.pos.dt[total_area > 0, table(cell, aa_type)]
 ##   MCF7            30392   2492     47   1780
 ##   HeLa_WT_J6PD   412058  30130    327  30514
 ##   HeLa_J6KO_J6PD 516609  39168    272  36393
-##   HeLa_WT_J6PD_2 143835  11085    224  11266
 ```
 
 
@@ -276,13 +275,40 @@ uniprot.accession.flag <- names(all.protein.bs) %>%
     {nchar(.) > 0}
 all.protein.bs <- all.protein.bs[uniprot.accession.flag]
 
+
+a.range <- 5
+
 stoic.dt[
     , seq5 := BSgenome::getSeq(
                           x = all.protein.bs,
                           name = Accession
                         ) %>% as.character %>%
-              substr(start = position - 5, stop = position + 5)
+              substr(start = position - a.range, stop = position + a.range)
 ]
+
+## MW filter
+stoic.dt[, `:=`(
+    MW_within_1 = substr(
+        seq5,
+        start = min(a.range, position - 1),
+        stop = min(a.range, position - 1) + 2
+    ) %>%
+        str_count(pattern = "(M|W)") > 0,
+    MW_within_2 = substr(
+        seq5,
+        start = min(a.range, position - 2),
+        stop = min(a.range, position - 2) + 4
+    ) %>%
+        str_count(pattern = "(M|W)") > 0    
+), by = seq_len(nrow(stoic.dt))]
+
+stoic.dt[, `:=`(
+    oxK_ratio = case_when(
+        MW_within_1 == TRUE ~ 0,
+        MW_within_2 == TRUE ~ 0,
+        TRUE ~ oxK_ratio
+    )
+)]
 
 merge(
     all.protein.feature.per.pos.dt,
@@ -330,7 +356,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-15                  
+##  date     2021-11-29                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

@@ -1,7 +1,7 @@
 ---
 title: "j2-3 Analysis of the stoichiometry of lysine hydroxylation and arginine methylation"
 author: "Yoichiro Sugimoto"
-date: "15 November, 2021"
+date: "29 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -26,7 +26,7 @@ library("Biostrings")
 
 processors <- 8
 
-j2.1.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiometry")
+j2.3.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-methylR-stoichiometry")
 
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
@@ -46,10 +46,10 @@ create.dirs(c(
 
 ```r
 input.names <- c(
-    "JQ1_J6KO" = "HeLa_J6KO_JQ1PD",
-    "JQ1_HeLa" = "HeLa_WT_JQ1PD",
-    "J6_J6KO" = "HeLa_J6KO_J6PD",
-    "J6_HeLa" = "HeLa_WT_J6PD"
+    "JQ1_HeLa",
+    "JQ1_J6KO",
+    "J6_HeLa",
+    "J6_J6KO"
 )
 
 all.pp.dt<- lapply(
@@ -57,8 +57,9 @@ all.pp.dt<- lapply(
     function(x){
         dt <- fread(
             paste0(
-                "../../data/j2-PTM-stoichiometry/hydroxyK-methylR-stoichiometry/MethylR_",
-                names(input.names)[x], "_protein-peptides.csv"
+                j2.3.input.dir,
+                "/MethylR_and_HydroxK_",
+                input.names[x], ".csv"
             )
         )
         setnames(
@@ -99,29 +100,29 @@ temp <- countPTM(all.pp.dt)
 ## [1] "All K related modifications"
 ## 
 ##                 K         K(+15.99) K(+15.99)(+42.01)         K(+42.01) 
-##             96288              4444                 1               489 
+##             90621              4000                 1               306 
 ## K(+42.01)(+15.99) K(+42.01)(+56.03) K(+42.01)(+72.02)         K(+56.03) 
-##               150               316               152            234974 
+##               123               197               131            221758 
 ## K(+56.03)(+42.01)         K(+72.02) K(+72.02)(+42.01) 
-##                20             18720                 5 
+##                19             16666                 5 
 ## [1] "All R related modifications"
 ## 
 ##                 R         R(+14.02)         R(+28.03)         R(+42.01) 
-##            196803              2052              1731               103 
+##            188757              1713              1580                64 
 ## R(+42.01)(+14.02) R(+42.01)(+28.03) 
-##               114                20 
+##                74                17 
 ## [1] "All PTMs"
 ## 
 ##         Acetylation (N-term) Acetylation (Protein N-term) 
-##                         2434                          662 
+##                         2011                          646 
 ##         Carbamidomethylation             Deamidation (NQ) 
-##                         3418                        11496 
+##                         3339                        10575 
 ##             Dimethylation(R)               Methylation(R) 
-##                          353                          285 
+##                          294                          238 
 ##                Oxidation (K)               Oxidation (MW) 
-##                          157                        24106 
+##                          139                        22938 
 ##      Oxidised Propionylation               Propionylation 
-##                         1925                       105078
+##                         1572                        99375
 ```
 
 ## Filtration and data processing
@@ -150,66 +151,66 @@ all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 ```
 ## [1] "Input peptides per cells"
 ## cell
-## HeLa_J6KO_JQ1PD   HeLa_WT_JQ1PD  HeLa_J6KO_J6PD    HeLa_WT_J6PD 
-##           27425           25160          101670           80020 
+## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
+##    24502    26774    75211    96360 
 ## [1] "Peptides per cells after filteration 1"
 ## cell
-## HeLa_J6KO_JQ1PD   HeLa_WT_JQ1PD  HeLa_J6KO_J6PD    HeLa_WT_J6PD 
-##           25004           23514           86897           68007 
+## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
+##    23020    24538    67124    85954 
 ## [1] "Peptides per cells after filtration 2"
 ## cell
-## HeLa_J6KO_JQ1PD   HeLa_WT_JQ1PD  HeLa_J6KO_J6PD    HeLa_WT_J6PD 
-##           19595           18802           78332           60753 
+## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
+##    18516    19349    60023    77538 
 ## [1] "After the filtration of acetylation (filteration 3)"
 ## [1] "All K related modifications"
 ## 
 ##         K K(+15.99) K(+56.03) K(+72.02) 
-##     69521      2234    173795     10403 
+##     69195      2164    172614     10317 
 ## [1] "All R related modifications"
 ## 
 ##         R R(+14.02) R(+28.03) 
-##    149841      1095      1014 
+##    147749      1038       975 
 ## [1] "All PTMs"
 ## 
 ##         Acetylation (N-term) Acetylation (Protein N-term) 
-##                         1602                          492 
+##                         1513                          482 
 ##         Carbamidomethylation             Deamidation (NQ) 
-##                         2508                         7327 
+##                         2475                         7230 
 ##             Dimethylation(R)               Methylation(R) 
-##                          189                          163 
+##                          176                          157 
 ##                Oxidation (K)               Oxidation (MW) 
-##                           97                        18801 
+##                           93                        18729 
 ##      Oxidised Propionylation               Propionylation 
-##                         1041                        81109 
+##                         1034                        80462 
 ## [1] "Peptides per cells after filtration 4"
 ## cell
-## HeLa_J6KO_JQ1PD   HeLa_WT_JQ1PD  HeLa_J6KO_J6PD    HeLa_WT_J6PD 
-##           19150           18297           76386           59138 
+## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
+##    18015    18908    58412    75597 
 ## [1] "Peptides per cells after filtration 5"
 ## cell
-## HeLa_J6KO_JQ1PD   HeLa_WT_JQ1PD  HeLa_J6KO_J6PD    HeLa_WT_J6PD 
-##           17907           17330           75154           58170 
+## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
+##    17074    17695    57449    74373 
 ## [1] "Filtration 5 (PTM assignment)"
 ## [1] "All K related modifications"
 ## 
 ##         K K(+15.99) K(+56.03) K(+72.02) 
-##     70788        77    163109      1103 
+##     70443        76    161973      1098 
 ## [1] "All R related modifications"
 ## 
 ##         R R(+14.02) R(+28.03) 
-##    142367       152       112 
+##    140338       147       107 
 ## [1] "All PTMs"
 ## 
 ##         Acetylation (N-term) Acetylation (Protein N-term) 
-##                         1514                          468 
+##                         1439                          458 
 ##         Carbamidomethylation             Deamidation (NQ) 
-##                         2455                         7021 
+##                         2422                         6927 
 ##             Dimethylation(R)               Methylation(R) 
-##                          112                          150 
+##                          107                          145 
 ##                Oxidation (K)               Oxidation (MW) 
-##                           71                        18202 
+##                           70                        18130 
 ##      Oxidised Propionylation               Propionylation 
-##                          946                        77677
+##                          941                        77054
 ```
 
 # Individual amino acid position
@@ -236,12 +237,12 @@ all.pos.dt[total_area > 0, table(cell, aa_type)]
 ```
 
 ```
-##                  aa_type
-## cell              all_aa    dmR      K     mR    oxK      R
-##   HeLa_J6KO_JQ1PD 129105     10  10051      5     50   8243
-##   HeLa_WT_JQ1PD   122681      7   9782      7     99   7818
-##   HeLa_J6KO_J6PD  527737     42  39652     59    284  37438
-##   HeLa_WT_J6PD    422145     41  30533     58    339  31458
+##           aa_type
+## cell       all_aa    dmR      K     mR    oxK      R
+##   JQ1_HeLa 121835      7   9725      5    100   7760
+##   JQ1_J6KO 128374      8   9999      3     49   8190
+##   J6_HeLa  413753     41  30168     58    337  30768
+##   J6_J6KO  518583     41  39225     59    282  36685
 ```
 
 
@@ -252,14 +253,14 @@ all.pos.dt[total_area > 0, table(cell, aa_type)]
 
 
 ```r
-stoic.dt <- dcast(
+k.stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("K", "oxK")],
     formula = cell + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
 
-stoic.dt[, `:=`(
+k.stoic.dt[, `:=`(
     oxK_ratio = total_area_oxK / total_area_K
 )]
 
@@ -272,34 +273,60 @@ uniprot.accession.flag <- names(all.protein.bs) %>%
     {nchar(.) > 0}
 all.protein.bs <- all.protein.bs[uniprot.accession.flag]
 
-stoic.dt[
+a.range <- 5
+
+k.stoic.dt[
     , seq5 := BSgenome::getSeq(
                           x = all.protein.bs,
                           name = Accession
                         ) %>% as.character %>%
-              substr(start = position - 5, stop = position + 5)
+              substr(start = position - a.range, stop = position + a.range)
 ]
+
+## MW filter
+k.stoic.dt[, `:=`(
+    MW_within_1 = substr(
+        seq5,
+        start = min(a.range, position - 1),
+        stop = min(a.range, position - 1) + 2
+    ) %>%
+        str_count(pattern = "(M|W)") > 0,
+    MW_within_2 = substr(
+        seq5,
+        start = min(a.range, position - 2),
+        stop = min(a.range, position - 2) + 4
+    ) %>%
+        str_count(pattern = "(M|W)") > 0    
+), by = seq_len(nrow(k.stoic.dt))]
+
+k.stoic.dt[, `:=`(
+    oxK_ratio = case_when(
+        MW_within_1 == TRUE ~ 0,
+        MW_within_2 == TRUE ~ 0,
+        TRUE ~ oxK_ratio
+    )
+)]
 
 merge(
     all.protein.feature.per.pos.dt,
-    stoic.dt,
+    k.stoic.dt,
     by = c("Accession", "position")
 ) %>%
     fwrite(file.path(j2.3.res.dir, "long_K_stoichiometry_data.csv"))
 
-wide.stoic.dt <- dcast(
-    stoic.dt,
+wide.k.stoic.dt <- dcast(
+    k.stoic.dt,
     formula = Accession + position + seq5 ~ cell,
     value.var = c(
         "oxK_ratio",
-        grep("^total_area", colnames(stoic.dt), value = TRUE),
-        grep("^total_n_feature", colnames(stoic.dt), value = TRUE)
+        grep("^total_area", colnames(k.stoic.dt), value = TRUE),
+        grep("^total_n_feature", colnames(k.stoic.dt), value = TRUE)
     )
 )
 
 merge(
     all.protein.feature.per.pos.dt,
-    wide.stoic.dt,
+    wide.k.stoic.dt,
     by = c("Accession", "position")
 ) %>%
     fwrite(
@@ -378,7 +405,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-15                  
+##  date     2021-11-29                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

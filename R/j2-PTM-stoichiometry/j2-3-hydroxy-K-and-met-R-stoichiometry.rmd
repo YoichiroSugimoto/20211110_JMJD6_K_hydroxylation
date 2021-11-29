@@ -192,7 +192,7 @@ k.stoic.dt[, `:=`(
         stop = min(a.range, position - 2) + 4
     ) %>%
         str_count(pattern = "(M|W)") > 0    
-), by = seq_len(nrow(stoic.dt))]
+), by = seq_len(nrow(k.stoic.dt))]
 
 k.stoic.dt[, `:=`(
     oxK_ratio = case_when(

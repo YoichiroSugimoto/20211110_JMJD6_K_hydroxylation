@@ -1,7 +1,7 @@
 ---
 title: "j0-1. Protein feature extraction (1/2)"
 author: "Yoichiro Sugimoto"
-date: "15 November, 2021"
+date: "28 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -278,30 +278,6 @@ temp <- calculateLettersIn10merRatio(
 )
 ```
 
-# Others
-
-
-
-```r
-temp <- calculateLettersIn10merRatio(
-    sl.aa.letters = c("K", "R"),
-    all.protein.bs = all.protein.bs,
-    window.size = 10
-)
-
-temp <- calculateLettersIn10merRatio(
-    sl.aa.letters = c("K", "R", "S"),
-    all.protein.bs = all.protein.bs,
-    window.size = 10
-)
-
-temp <- calculateLettersIn10merRatio(
-    sl.aa.letters = c("K", "R", "S", "H"),
-    all.protein.bs = all.protein.bs,
-    window.size = 10
-)
-```
-
 
 
 # Session information
@@ -323,7 +299,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-15                  
+##  date     2021-11-28                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package          * version  date       lib source        

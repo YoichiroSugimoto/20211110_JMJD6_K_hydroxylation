@@ -16,21 +16,20 @@ This pipeline performs the analyses of LC-MS/MS data for "title of paper". Speci
 Input data (e.g. outputs of LC-MS/MS data analyses by `Peaks` (csv files) or manually curated JMJD6 hydroxylation sites (xlsx files)) are stored.
 
 ``` bash
-├── data 
+├── data
 │   ├── all_protein.fasta
 │   ├── j1-JMJD6-coIP
 │   │   └── 20210408-JMJD6-interactomics-data.csv
 │   ├── j2-PTM-stoichiometry
 │   │   ├── hydroxyK-methylR-stoichiometry
-│   │   │   ├── MethylR_J6_HeLa_protein-peptides.csv
-│   │   │   ├── MethylR_J6_J6KO_protein-peptides.csv
-│   │   │   ├── MethylR_JQ1_HeLa_protein-peptides.csv
-│   │   │   └── MethylR_JQ1_J6KO_protein-peptides.csv
+│   │   │   ├── MethylR_and_HydroxK_J6_HeLa.csv
+│   │   │   ├── MethylR_and_HydroxK_J6_J6KO.csv
+│   │   │   ├── MethylR_and_HydroxK_JQ1_HeLa.csv
+│   │   │   └── MethylR_and_HydroxK_JQ1_J6KO.csv
 │   │   ├── hydroxyK-stoichiometry
 │   │   │   ├── HEK293__protein-peptides.csv
 │   │   │   ├── HeLa_J6KO_J6PD__protein-peptides.csv
 │   │   │   ├── HeLa_J6KO__protein-peptides.csv
-│   │   │   ├── HeLa_WT_J6PD_2__protein-peptides.csv
 │   │   │   ├── HeLa_WT_J6PD__protein-peptides.csv
 │   │   │   ├── HeLa_WT__protein-peptides.csv
 │   │   │   └── MCF7__protein-peptides.csv
@@ -81,43 +80,6 @@ Master scripts sequentially run the `rmarkdown` scripts in `R` directory.
 ## Doc
 `Doc` stores the html outputs of the `rmakdown` scripts. The files contain the scripts and documentations.
 
-```bash
-├── doc
-│   ├── j0-data-preprocessing
-│   │   ├── j0-1-protein-feature-extraction-1.html
-│   │   ├── j0-1-protein-feature-extraction-1.md
-│   │   ├── j0-2-protein-feature-extraction-2.html
-│   │   ├── j0-2-protein-feature-extraction-2.md
-│   │   ├── j0-3-merge-all-data.html
-│   │   └── j0-3-merge-all-data.md
-│   ├── j1-JMJD6-coIP-with-DMOG
-│   │   ├── j1-analysis-of-JMJD6-interactome-data_files
-│   │   │   └── figure-html
-│   │   │       ├── heatmap2-1.pdf
-│   │   │       ├── heatmap2-1.png
-│   │   │       ├── k\ ratio-1.pdf
-│   │   │       └── k\ ratio-1.png
-│   │   ├── j1-analysis-of-JMJD6-interactome-data.html
-│   │   └── j1-analysis-of-JMJD6-interactome-data.md
-│   ├── j2-PTM-stoichiometry
-│   │   ├── j2-1-hydroxy-K-stoichiometry.html
-│   │   ├── j2-1-hydroxy-K-stoichiometry.md
-│   │   ├── j2-2-hydroxy-K-stoichiometry-with-AspN.html
-│   │   ├── j2-2-hydroxy-K-stoichiometry-with-AspN.md
-│   │   ├── j2-3-hydroxy-K-and-met-R-stoichiometry.html
-│   │   ├── j2-3-hydroxy-K-and-met-R-stoichiometry.md
-│   │   ├── j2-4-significance-of-K-hydroxylation.html
-│   │   └── j2-4-significance-of-K-hydroxylation.md
-│   └── j3-properties-of-hydroxylation-sites
-│       ├── j3-properties-of-hydroxylation-sites_files
-│       │   └── figure-html
-│       │       ├── amino\ acid\ enrichment-1.pdf
-│       │       ├── amino\ acid\ enrichment-1.png
-│       │       ├── analysis\ of\ sequence\ feature-1.pdf
-│       │       └── analysis\ of\ sequence\ feature-1.png
-│       ├── j3-properties-of-hydroxylation-sites.html
-│       └── j3-properties-of-hydroxylation-sites.md
-```
 
 ## Results
 

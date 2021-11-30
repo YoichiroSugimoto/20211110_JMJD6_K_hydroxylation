@@ -114,19 +114,12 @@ The following filtration and data processing will be performed:
 	 - Propionylated K: K(+56.03), K(+72.02)
 	 - Dimethyl R: R(+28.03)
 6. The PTMs are assigned in the PTM column
+7. (additional filter) K does not have M or W within 2 amino acids to be assigned as hydroxy K
 
 ```{r data filtration}
 
 
 all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
-
-
-```
-
-# Individual amino acid position
-
-
-```{r index to aa pos}
 
 all.pos.dt <- lapply(
     c("K", "oxK", "R", "mR", "dmR", "all_aa"),
@@ -134,9 +127,6 @@ all.pos.dt <- lapply(
     dt = all.indexed.pp.dt
 ) %>%
     rbindlist
-
-print("The number of amino acids and PTM analysed / identified.")
-all.pos.dt[total_area > 0, table(cell, aa_type)]
 
 ```
 
@@ -195,6 +185,9 @@ stoic.dt[, `:=`(
         str_count(pattern = "(M|W)") > 0    
 ), by = seq_len(nrow(stoic.dt))]
 
+print("Before filtration 7")
+stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+
 stoic.dt[, `:=`(
     oxK_ratio = case_when(
         MW_within_1 == TRUE ~ 0,
@@ -202,6 +195,13 @@ stoic.dt[, `:=`(
         TRUE ~ oxK_ratio
     )
 )]
+
+print("After filtration 7")
+stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+
+print("After filtration 7 (5% hydroxylation)")
+stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
+
 
 merge(
     all.protein.feature.per.pos.dt,

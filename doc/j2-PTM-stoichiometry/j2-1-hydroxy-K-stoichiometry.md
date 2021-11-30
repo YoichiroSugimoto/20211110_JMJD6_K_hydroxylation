@@ -1,7 +1,7 @@
 ---
 title: "j2-1 Stoichiometry of lysine hydroxylations"
 author: "Yoichiro Sugimoto"
-date: "29 November, 2021"
+date: "30 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -136,6 +136,7 @@ The following filtration and data processing will be performed:
 	 - Propionylated K: K(+56.03), K(+72.02)
 	 - Dimethyl R: R(+28.03)
 6. The PTMs are assigned in the PTM column
+7. (additional filter) K does not have M or W within 2 amino acids to be assigned as hydroxy K
 
 
 ```r
@@ -213,10 +214,6 @@ all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 ##                         1075                        79112
 ```
 
-# Individual amino acid position
-
-
-
 ```r
 all.pos.dt <- lapply(
     c("K", "oxK", "R", "mR", "dmR", "all_aa"),
@@ -224,27 +221,6 @@ all.pos.dt <- lapply(
     dt = all.indexed.pp.dt
 ) %>%
     rbindlist
-
-print("The number of amino acids and PTM analysed / identified.")
-```
-
-```
-## [1] "The number of amino acids and PTM analysed / identified."
-```
-
-```r
-all.pos.dt[total_area > 0, table(cell, aa_type)]
-```
-
-```
-##                 aa_type
-## cell             all_aa      K    oxK      R
-##   HeLa_WT        121453   9710     99   7722
-##   HeLa_J6KO      127930   9977     48   8144
-##   HEK293          24071   1891     56   1453
-##   MCF7            30392   2492     47   1780
-##   HeLa_WT_J6PD   412058  30130    327  30514
-##   HeLa_J6KO_J6PD 516609  39168    272  36393
 ```
 
 
@@ -302,6 +278,25 @@ stoic.dt[, `:=`(
         str_count(pattern = "(M|W)") > 0    
 ), by = seq_len(nrow(stoic.dt))]
 
+print("Before filtration 7")
+```
+
+```
+## [1] "Before filtration 7"
+```
+
+```r
+stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+```
+
+```
+##          cell
+## Hydroxy_K HeLa_WT HeLa_J6KO HEK293  MCF7 HeLa_WT_J6PD HeLa_J6KO_J6PD
+##     FALSE    9611      9929   1835  2445        29803          38896
+##     TRUE       99        48     56    47          327            272
+```
+
+```r
 stoic.dt[, `:=`(
     oxK_ratio = case_when(
         MW_within_1 == TRUE ~ 0,
@@ -310,6 +305,44 @@ stoic.dt[, `:=`(
     )
 )]
 
+print("After filtration 7")
+```
+
+```
+## [1] "After filtration 7"
+```
+
+```r
+stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+```
+
+```
+##          cell
+## Hydroxy_K HeLa_WT HeLa_J6KO HEK293  MCF7 HeLa_WT_J6PD HeLa_J6KO_J6PD
+##     FALSE    9633      9948   1837  2452        29921          39031
+##     TRUE       77        29     54    40          209            137
+```
+
+```r
+print("After filtration 7 (5% hydroxylation)")
+```
+
+```
+## [1] "After filtration 7 (5% hydroxylation)"
+```
+
+```r
+stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
+```
+
+```
+##          cell
+## Hydroxy_K HeLa_WT HeLa_J6KO HEK293  MCF7 HeLa_WT_J6PD HeLa_J6KO_J6PD
+##     FALSE    9658      9957   1856  2470        30036          39121
+##     TRUE       52        20     35    22           94             47
+```
+
+```r
 merge(
     all.protein.feature.per.pos.dt,
     stoic.dt,
@@ -356,7 +389,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-29                  
+##  date     2021-11-30                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

@@ -1,7 +1,7 @@
 ---
 title: "j2-3 Analysis of the stoichiometry of lysine hydroxylation and arginine methylation"
 author: "Yoichiro Sugimoto"
-date: "29 November, 2021"
+date: "30 November, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -142,6 +142,7 @@ The following filtration and data processing will be performed:
 	 - Propionylated K: K(+56.03), K(+72.02)
 	 - Dimethyl R: R(+28.03)
 6. The PTMs are assigned in the PTM column
+7. (additional filter) K does not have M or W within 2 amino acids to be assigned as hydroxy K
 
 
 ```r
@@ -213,10 +214,6 @@ all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 ##                          941                        77054
 ```
 
-# Individual amino acid position
-
-
-
 ```r
 all.pos.dt <- lapply(
     c("K", "oxK", "R", "mR", "dmR", "all_aa"),
@@ -224,25 +221,6 @@ all.pos.dt <- lapply(
     dt = all.indexed.pp.dt
 ) %>%
     rbindlist
-
-print("The number of amino acids and PTM analysed / identified.")
-```
-
-```
-## [1] "The number of amino acids and PTM analysed / identified."
-```
-
-```r
-all.pos.dt[total_area > 0, table(cell, aa_type)]
-```
-
-```
-##           aa_type
-## cell       all_aa    dmR      K     mR    oxK      R
-##   JQ1_HeLa 121835      7   9725      5    100   7760
-##   JQ1_J6KO 128374      8   9999      3     49   8190
-##   J6_HeLa  413753     41  30168     58    337  30768
-##   J6_J6KO  518583     41  39225     59    282  36685
 ```
 
 
@@ -283,6 +261,25 @@ k.stoic.dt[
               substr(start = position - a.range, stop = position + a.range)
 ]
 
+print("Before filtration 7")
+```
+
+```
+## [1] "Before filtration 7"
+```
+
+```r
+k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+```
+
+```
+##          cell
+## Hydroxy_K JQ1_HeLa JQ1_J6KO J6_HeLa J6_J6KO
+##     FALSE     9625     9950   29831   38943
+##     TRUE       100       49     337     282
+```
+
+```r
 ## MW filter
 k.stoic.dt[, `:=`(
     MW_within_1 = substr(
@@ -307,6 +304,44 @@ k.stoic.dt[, `:=`(
     )
 )]
 
+print("After filtration 7")
+```
+
+```
+## [1] "After filtration 7"
+```
+
+```r
+k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+```
+
+```
+##          cell
+## Hydroxy_K JQ1_HeLa JQ1_J6KO J6_HeLa J6_J6KO
+##     FALSE     9647     9969   29957   39088
+##     TRUE        78       30     211     137
+```
+
+```r
+print("After filtration 7 (5% hydroxylation)")
+```
+
+```
+## [1] "After filtration 7 (5% hydroxylation)"
+```
+
+```r
+k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
+```
+
+```
+##          cell
+## Hydroxy_K JQ1_HeLa JQ1_J6KO J6_HeLa J6_J6KO
+##     FALSE     9672     9978   30072   39176
+##     TRUE        53       21      96      49
+```
+
+```r
 merge(
     all.protein.feature.per.pos.dt,
     k.stoic.dt,
@@ -405,7 +440,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-29                  
+##  date     2021-11-30                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

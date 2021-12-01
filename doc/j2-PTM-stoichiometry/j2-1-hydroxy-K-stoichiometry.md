@@ -1,7 +1,7 @@
 ---
 title: "j2-1 Stoichiometry of lysine hydroxylations"
 author: "Yoichiro Sugimoto"
-date: "30 November, 2021"
+date: "01 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -278,71 +278,24 @@ stoic.dt[, `:=`(
         str_count(pattern = "(M|W)") > 0    
 ), by = seq_len(nrow(stoic.dt))]
 
-print("Before filtration 7")
-```
+## print("Before filtration 7")
+## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
 
-```
-## [1] "Before filtration 7"
-```
+## stoic.dt[, `:=`(
+##     oxK_ratio = case_when(
+##         MW_within_1 == TRUE ~ 0,
+##         MW_within_2 == TRUE ~ 0,
+##         TRUE ~ oxK_ratio
+##     )
+## )]
 
-```r
-stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
-```
+## print("After filtration 7")
+## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
 
-```
-##          cell
-## Hydroxy_K HeLa_WT HeLa_J6KO HEK293  MCF7 HeLa_WT_J6PD HeLa_J6KO_J6PD
-##     FALSE    9611      9929   1835  2445        29803          38896
-##     TRUE       99        48     56    47          327            272
-```
+## print("After filtration 7 (5% hydroxylation)")
+## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
 
-```r
-stoic.dt[, `:=`(
-    oxK_ratio = case_when(
-        MW_within_1 == TRUE ~ 0,
-        MW_within_2 == TRUE ~ 0,
-        TRUE ~ oxK_ratio
-    )
-)]
 
-print("After filtration 7")
-```
-
-```
-## [1] "After filtration 7"
-```
-
-```r
-stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
-```
-
-```
-##          cell
-## Hydroxy_K HeLa_WT HeLa_J6KO HEK293  MCF7 HeLa_WT_J6PD HeLa_J6KO_J6PD
-##     FALSE    9633      9948   1837  2452        29921          39031
-##     TRUE       77        29     54    40          209            137
-```
-
-```r
-print("After filtration 7 (5% hydroxylation)")
-```
-
-```
-## [1] "After filtration 7 (5% hydroxylation)"
-```
-
-```r
-stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
-```
-
-```
-##          cell
-## Hydroxy_K HeLa_WT HeLa_J6KO HEK293  MCF7 HeLa_WT_J6PD HeLa_J6KO_J6PD
-##     FALSE    9658      9957   1856  2470        30036          39121
-##     TRUE       52        20     35    22           94             47
-```
-
-```r
 merge(
     all.protein.feature.per.pos.dt,
     stoic.dt,
@@ -352,7 +305,7 @@ merge(
 
 wide.stoic.dt <- dcast(
     stoic.dt,
-    formula = Accession + position + seq5 ~ cell,
+    formula = Accession + position + seq5 + MW_within_1 + MW_within_2 ~ cell,
     value.var = c(
         "oxK_ratio",
         grep("^total_area", colnames(stoic.dt), value = TRUE),
@@ -389,7 +342,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-30                  
+##  date     2021-12-01                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

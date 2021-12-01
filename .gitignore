@@ -16,9 +16,7 @@ rawdata/
 Rawdata/
 annotation/
 results/
-data/j1-JMJD6-coIP
-data/j2-PTM-stoichiometry
-data/j3-properties-of-hydroxylation-sites
+data/
 ## ignore sofrware directory
 software/
 temp/

@@ -1,7 +1,7 @@
 ---
 title: "j0-2 Protein feature extraction 2"
 author: "Yoichiro Sugimoto"
-date: "30 November, 2021"
+date: "01 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -161,7 +161,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-11-30                  
+##  date     2021-12-01                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package          * version  date       lib source        

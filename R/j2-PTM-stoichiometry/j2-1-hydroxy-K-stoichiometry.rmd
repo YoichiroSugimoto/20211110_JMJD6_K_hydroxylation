@@ -185,22 +185,22 @@ stoic.dt[, `:=`(
         str_count(pattern = "(M|W)") > 0    
 ), by = seq_len(nrow(stoic.dt))]
 
-print("Before filtration 7")
-stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+## print("Before filtration 7")
+## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
 
-stoic.dt[, `:=`(
-    oxK_ratio = case_when(
-        MW_within_1 == TRUE ~ 0,
-        MW_within_2 == TRUE ~ 0,
-        TRUE ~ oxK_ratio
-    )
-)]
+## stoic.dt[, `:=`(
+##     oxK_ratio = case_when(
+##         MW_within_1 == TRUE ~ 0,
+##         MW_within_2 == TRUE ~ 0,
+##         TRUE ~ oxK_ratio
+##     )
+## )]
 
-print("After filtration 7")
-stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+## print("After filtration 7")
+## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
 
-print("After filtration 7 (5% hydroxylation)")
-stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
+## print("After filtration 7 (5% hydroxylation)")
+## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
 
 
 merge(
@@ -212,7 +212,7 @@ merge(
 
 wide.stoic.dt <- dcast(
     stoic.dt,
-    formula = Accession + position + seq5 ~ cell,
+    formula = Accession + position + seq5 + MW_within_1 + MW_within_2 ~ cell,
     value.var = c(
         "oxK_ratio",
         grep("^total_area", colnames(stoic.dt), value = TRUE),

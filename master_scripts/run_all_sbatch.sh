@@ -20,3 +20,6 @@ jid2=$(echo ${jid02##* })
 
 jid03=$(sbatch --dependency=afterok:$jid2 /camp/home/sugimoy/home/CAMP_HPC/projects/20211110_JMJD6_K_hydroxylation/master_scripts/sub_master_scripts/3_run_individual_rmds_sbatch.sh)
 jid3=$(echo ${jid03##* })
+
+jid04=$(sbatch --dependency=afterok:$jid3 /camp/home/sugimoy/home/CAMP_HPC/projects/20211110_JMJD6_K_hydroxylation/master_scripts/sub_master_scripts/4_run_individual_rmds_sbatch.sh)
+jid3=$(echo ${jid04##* })

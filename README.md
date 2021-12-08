@@ -9,6 +9,22 @@ This pipeline performs the analyses of LC-MS/MS data for "title of paper". Speci
 2. Analysis of JMJD6 hydroxylation sites and the stoichiometry
     - JMJD6 hydroxylation sites and the stoichiometry of the modification are analysed. In addition, the effect of JMJD6 for arginine dimethylation are also analysed.
 3. Analysis of the characteristics of JMJD6 hydroxylation sites
+4. Analysis of de novo sequence data
+
+# Association with figures
+
+0. Data preprocessing
+    - Fig. 2B: K-ratio and disorderedness score for BRD4
+    - Fig. 3B and Fig. 4D: max K-ratio
+1. Analysis of JMJD6 interactome data
+    - Fig. 3B and D
+2. Analysis of JMJD6 hydroxylation sites and the stoichiometry
+    - Fig. 1D: j2-2, Lysine hydroxylation stoichiometry as a function of oxygen availability using AspN digested data
+    - Fig. 2C and Fig. 4B: j2-1, Lysine hydroxylation stoichiometry
+    - Fig. 4D: j2-4, significance of lysine hydroxylation sites
+3. Analysis of the characteristics of JMJD6 hydroxylation sites
+    - Fig. 4E
+4.
 
 # Directory structures
 

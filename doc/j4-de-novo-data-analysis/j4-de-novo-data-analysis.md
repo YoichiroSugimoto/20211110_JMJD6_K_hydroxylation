@@ -1,7 +1,7 @@
 ---
 title: "j4 de novo data analysis"
 author: "Yoichiro Sugimoto"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "05 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -18,11 +18,162 @@ output:
 # Load packages
 
 
-```{r load packages}
 
+```r
 library("Biostrings")
+```
 
+```
+## Loading required package: BiocGenerics
+```
+
+```
+## Loading required package: parallel
+```
+
+```
+## 
+## Attaching package: 'BiocGenerics'
+```
+
+```
+## The following objects are masked from 'package:parallel':
+## 
+##     clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+##     clusterExport, clusterMap, parApply, parCapply, parLapply,
+##     parLapplyLB, parRapply, parSapply, parSapplyLB
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     IQR, mad, sd, var, xtabs
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+##     dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+##     grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+##     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+##     rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+##     union, unique, unsplit, which, which.max, which.min
+```
+
+```
+## Loading required package: S4Vectors
+```
+
+```
+## Loading required package: stats4
+```
+
+```
+## 
+## Attaching package: 'S4Vectors'
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     expand.grid
+```
+
+```
+## Loading required package: IRanges
+```
+
+```
+## Loading required package: XVector
+```
+
+```
+## 
+## Attaching package: 'Biostrings'
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     strsplit
+```
+
+```r
 temp <- sapply(list.files("../functions", full.names = TRUE), source)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:Biostrings':
+## 
+##     collapse, intersect, setdiff, setequal, union
+```
+
+```
+## The following object is masked from 'package:XVector':
+## 
+##     slice
+```
+
+```
+## The following objects are masked from 'package:IRanges':
+## 
+##     collapse, desc, intersect, setdiff, slice, union
+```
+
+```
+## The following objects are masked from 'package:S4Vectors':
+## 
+##     first, intersect, rename, setdiff, setequal, union
+```
+
+```
+## The following objects are masked from 'package:BiocGenerics':
+## 
+##     combine, intersect, setdiff, union
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```
+## 
+## Attaching package: 'data.table'
+```
+
+```
+## The following objects are masked from 'package:dplyr':
+## 
+##     between, first, last
+```
+
+```
+## The following object is masked from 'package:IRanges':
+## 
+##     shift
+```
+
+```
+## The following objects are masked from 'package:S4Vectors':
+## 
+##     first, second
+```
+
+```r
 source("../../R/j2-PTM-stoichiometry/functions/stoichiometry_functions.R")
 
 results.dir <- file.path("../../results")
@@ -33,15 +184,14 @@ create.dirs(c(
 ))
 
 processors <- 8
-
 ```
 
 # Pre-process peptide data
 
 Note that the dummy data will be inserted for the PTM column, and thus the statistics for "All PTMs" are not meaningful here.
 
-```{r preprocessing peptide data}
 
+```r
 j4.input.dir <- file.path("../../data/j4-de-novo-data")
 
 peptide.wt.dt <- fread(file.path(j4.input.dir, "HeLa_peptide_de_novo_peptides.csv"))
@@ -72,7 +222,58 @@ all.dt[, `:=`(
 all.protein.feature.per.pos.dt <- data.table(Accession = 1)
 
 all.dt <- filterPeptideData(all.dt)
+```
 
+```
+## [1] "Input peptides per cells"
+## cell
+##     JQ1_JMJD6KO          JQ1_WT peptide_JMJD6KO      peptide_WT 
+##          136947          128674          608508          585643 
+## [1] "Peptides per cells after filteration 1"
+## cell
+##     JQ1_JMJD6KO          JQ1_WT peptide_JMJD6KO      peptide_WT 
+##          136947          128674          608508          585643 
+## [1] "Peptides per cells after filtration 2"
+## cell
+##     JQ1_JMJD6KO          JQ1_WT peptide_JMJD6KO      peptide_WT 
+##          136947          128674          608508          585643 
+## [1] "After the filtration of acetylation (filteration 3)"
+## [1] "All K related modifications"
+## 
+##         K K(+15.99) K(+56.03) K(+72.02) 
+##    528505    113893   1110613    128881 
+## [1] "All R related modifications"
+## 
+##       R 
+## 1322888 
+## [1] "All PTMs"
+## 
+##           Oxidation (K) Oxidised Propionylation 
+##                 1459772                 1459772 
+## [1] "Peptides per cells after filtration 4"
+## cell
+##     JQ1_JMJD6KO          JQ1_WT peptide_JMJD6KO      peptide_WT 
+##          135149          126499          598079          575171 
+## [1] "Peptides per cells after filtration 5"
+## cell
+##     JQ1_JMJD6KO          JQ1_WT peptide_JMJD6KO      peptide_WT 
+##          123237          117908          570704          548744 
+## [1] "Filtration 5 (PTM assignment)"
+## [1] "All K related modifications"
+## 
+##         K K(+15.99) K(+56.03) K(+72.02) 
+##    425535     75981   1013481    110077 
+## [1] "All R related modifications"
+## 
+##       R 
+## 1203139 
+## [1] "All PTMs"
+## 
+##           Oxidation (K) Oxidised Propionylation 
+##                 1360593                 1360593
+```
+
+```r
 ## Peptides which does not contain K were excluded
 all.dt <- all.dt[str_count(Peptide, "K") > 0]
 
@@ -83,7 +284,14 @@ all.dt[, `:=`(
 )]
 
 all.dt[, summary(length)]
+```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    4.00   10.00   12.00   13.44   16.00   48.00
+```
+
+```r
 fwrite(
     all.dt[
         grepl("K\\(\\+15.99\\)", PSM_hydroxy)
@@ -101,7 +309,6 @@ save(
     all.dt,
     file = file.path(j4.res.dir, "test-de-novo-hydroxylation-site.Rdata")
 )
-
 ```
 
 
@@ -109,8 +316,8 @@ save(
 
 Below are dummy data only used for test.
 
-```{r dummy data for development}
 
+```r
 ## dummy.peptide <- c(
 ##     "KKKKKKKKKK", #K10
 ##     "KKHKKKKK", #K2HK5
@@ -135,14 +342,13 @@ Below are dummy data only used for test.
 ##     ),
 ##     length = nchar(dummy.peptide)
 ## )
-
 ```
 
 Actual analysis will be performed here
 
 
-```{r plot heatmap}
 
+```r
 window.size <- 6
 denovo.score.cutoff <- 50
 
@@ -287,7 +493,25 @@ basic.stats <- all.score.dt[
     {.[, total_n := oxK + no_oxK]}
 
 print(basic.stats)
+```
 
+```
+##       JMJD6 K_count no_oxK   oxK total_n
+##  1: JMJD6KO       1 282508 48829  331337
+##  2: JMJD6KO       2  93194 31137  124331
+##  3: JMJD6KO       3  19469  6082   25551
+##  4: JMJD6KO       4   3347   774    4121
+##  5: JMJD6KO       5    303    23     326
+##  6: JMJD6KO       6      4     3       7
+##  7:      WT       1 265173 47119  312292
+##  8:      WT       2  87816 30237  118053
+##  9:      WT       3  18832  6091   24923
+## 10:      WT       4   3345   931    4276
+## 11:      WT       5    195    83     278
+## 12:      WT       6      3    NA      NA
+```
+
+```r
 all.score.dt[, `:=`(
     K_count_capped = case_when(
         K_count < 5 ~ as.character(K_count),
@@ -306,8 +530,23 @@ basic.stats.2 <- all.score.dt[
     {.[, total_n := oxK + no_oxK]}
 
 print(basic.stats.2)
+```
 
+```
+##       JMJD6 K_count_capped no_oxK   oxK total_n
+##  1: JMJD6KO              1 282508 48829  331337
+##  2: JMJD6KO              2  93194 31137  124331
+##  3: JMJD6KO              3  19469  6082   25551
+##  4: JMJD6KO              4   3347   774    4121
+##  5: JMJD6KO             5+    307    26     333
+##  6:      WT              1 265173 47119  312292
+##  7:      WT              2  87816 30237  118053
+##  8:      WT              3  18832  6091   24923
+##  9:      WT              4   3345   931    4276
+## 10:      WT             5+    198    83     281
+```
 
+```r
 all.score.dt <- all.score.dt[
     order(- K_count_capped, - max_oxK_score)
 ]
@@ -325,8 +564,53 @@ fwrite(
 )
 
 library("ComplexHeatmap")
-library("circlize")
+```
 
+```
+## Loading required package: grid
+```
+
+```
+## ========================================
+## ComplexHeatmap version 2.4.3
+## Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
+## Github page: https://github.com/jokergoo/ComplexHeatmap
+## Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
+## 
+## If you use it in published research, please cite:
+## Gu, Z. Complex heatmaps reveal patterns and correlations in multidimensional 
+##   genomic data. Bioinformatics 2016.
+## 
+## This message can be suppressed by:
+##   suppressPackageStartupMessages(library(ComplexHeatmap))
+## ========================================
+```
+
+```r
+library("circlize")
+```
+
+```
+## Warning: package 'circlize' was built under R version 4.0.5
+```
+
+```
+## ========================================
+## circlize version 0.4.13
+## CRAN page: https://cran.r-project.org/package=circlize
+## Github page: https://github.com/jokergoo/circlize
+## Documentation: https://jokergoo.github.io/circlize_book/book/
+## 
+## If you use it in published research, please cite:
+## Gu, Z. circlize implements and enhances circular visualization
+##   in R. Bioinformatics 2014.
+## 
+## This message can be suppressed by:
+##   suppressPackageStartupMessages(library(circlize))
+## ========================================
+```
+
+```r
 colfunc <- colorRamp2(c(0, 100), c("white", "blue"))(1:50)
 
 plotHeatmap <- function(k.count.capped.val, JMJD6.status, plot.score.dt){
@@ -348,12 +632,11 @@ plotHeatmap <- function(k.count.capped.val, JMJD6.status, plot.score.dt){
     )
     return(hm)
 }
-
 ```
 
 
-```{r plot data, fig.width = 5, fig.height = 2.5}
 
+```r
 for(jmjd6.status in c("WT", "JMJD6KO")){
     for(k.count.capped in c(as.character(1:4), "5+")){
         hm <- plotHeatmap(
@@ -362,5 +645,60 @@ for(jmjd6.status in c("WT", "JMJD6KO")){
         draw(hm)
     }
 }
+```
 
 ```
+## Warning: The input is a data frame, convert it to the matrix.
+
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-1.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-2.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-3.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-4.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-5.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-6.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-7.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-8.png)<!-- -->
+
+```
+## Warning: The input is a data frame, convert it to the matrix.
+```
+
+![](j4-de-novo-data-analysis_files/figure-html/plot data-9.png)<!-- -->![](j4-de-novo-data-analysis_files/figure-html/plot data-10.png)<!-- -->

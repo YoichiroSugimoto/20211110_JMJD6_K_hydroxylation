@@ -24,6 +24,7 @@ temp <- sapply(list.files("../functions", full.names = TRUE), source)
 
 library("Biostrings")
 library("GenomicRanges")
+library("BSgenome")
 library("readxl")
 
 processors <- 8
@@ -87,10 +88,28 @@ manually.curated.hydroxylation.dt <-
 manually.curated.hydroxylation.dt <-
     manually.curated.hydroxylation.dt[, .(Accession, position)]
 
-manually.curated.hydroxylation.dt[
-  , JMJD6_substrate_flag := "JMJD6_substrate"
-]
+manually.curated.hydroxylation.dt[, `:=`(
+    residue_at_curated_site =
+        BSgenome::getSeq(
+                      x = all.protein.bs,
+                      name = Accession
+                  ) %>% as.character %>%
+        {substr(
+            .,
+            start = position,
+            stop = position
+        )},
+    JMJD6_substrate_flag = "JMJD6_substrate"
+)]
 
+## Sanity check
+manually.curated.hydroxylation.dt[, table(residue_at_curated_site)]
+
+print("Positions and proteins in manually curated data:")
+manually.curated.hydroxylation.dt[, list(
+    unique_protein_N = uniqueN(Accession),
+    unique_site_N = uniqueN(paste0(Accession, "_", position))
+)]
 
 ```
 
@@ -99,7 +118,9 @@ manually.curated.hydroxylation.dt[
 
 ```{r stoichiometry data}
 
-cells <- c("HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD", "HeLa_WT_J6PD_2")
+## cells <- c(
+##     "HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD"
+## )
 
 stoichiometry.dt <- fread(
     file.path(
@@ -108,14 +129,20 @@ stoichiometry.dt <- fread(
     )
 )
 
+stoichiometry.dt[, stoichiometry_available := TRUE]
+
 stoichiometry.dt <- merge(
     manually.curated.hydroxylation.dt,
     stoichiometry.dt,
-    all.y = TRUE,
+    all = TRUE,
     by = c("Accession", "position")
 )
 
 stoichiometry.dt[, `:=`(
+    stoichiometry_available = case_when(
+        is.na(stoichiometry_available) ~ FALSE,
+        TRUE ~ TRUE
+    ),
     JMJD6_substrate_flag = case_when(
         is.na(JMJD6_substrate_flag) ~ "Others",
         TRUE ~ JMJD6_substrate_flag
@@ -123,6 +150,35 @@ stoichiometry.dt[, `:=`(
     Accession_position = paste(Accession, position, sep = "_")
 )]
 
+reportOxKSiteStats <- function(stoichiometry.dt){
+    print("Positions and proteins in aggregated data:")
+    stoichiometry.dt[, list(
+        unique_protein_N = uniqueN(Accession),
+        unique_site_N = uniqueN(Accession_position)
+    ),
+    by = list(
+        JMJD6_substrate_flag,
+        stoichiometry_available
+    )
+    ][order(JMJD6_substrate_flag, -stoichiometry_available)] %>%
+        print
+
+    stoichiometry.dt[, list(
+        unique_protein_N = uniqueN(Accession),
+        unique_site_N = uniqueN(Accession_position)
+    ),
+    by = list(
+        JMJD6_substrate_flag,
+        stoichiometry_available,
+        cell
+    )
+    ][order(JMJD6_substrate_flag, cell)] %>%
+        print
+
+    return()
+}
+
+temp <- reportOxKSiteStats(stoichiometry.dt)
 
 ```
 
@@ -130,8 +186,6 @@ stoichiometry.dt[, `:=`(
 
 
 ```{r fasta data}
-
-library("BSgenome")
 
 stoichiometry.dt[, `:=`(
     protein_sequence = BSgenome::getSeq(
@@ -166,10 +220,18 @@ stoichiometry.dt <- stoichiometry.dt[, c(
     left.cols, colnames(stoichiometry.dt)[!(colnames(stoichiometry.dt) %in% left.cols)]
 ), with = FALSE]
 
+## Additional data filteration by the number of feature, and the availability of full length sequence
+
 stoichiometry.dt <- stoichiometry.dt[
-    residue == "K" &
-    total_n_feature_K > 3
+    JMJD6_substrate_flag == "JMJD6_substrate" |
+    (
+        residue == "K" &
+        full_length_seq_flag == TRUE &
+        total_n_feature_K > 2
+    )
 ]
+
+temp <- reportOxKSiteStats(stoichiometry.dt)
 
 ```
 
@@ -180,10 +242,8 @@ stoichiometry.dt <- stoichiometry.dt[
 
 ```{r amino acid enrichment, fig.width = 7}
 
-
 non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    full_length_seq_flag == TRUE &
-    cell %in% c("HeLa_WT", "HeLa_WT_J6PD", "HeLa_WT_J6PD_2")
+    !(cell %in% c("HeLa_J6KO", "HeLa_J6KO_J6PD")) | is.na(cell)
 ][
     order(
         JMJD6_substrate_flag == "JMJD6_substrate",
@@ -194,13 +254,16 @@ non.duplicated.stoichiometry.dt <- stoichiometry.dt[
     !duplicated(paste(Accession, position))
 ]
 
+temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
+
 ## Sanity checks
+print("To discuss #1")
 non.duplicated.stoichiometry.dt[
-    JMJD6_substrate_flag == "JMJD6_substrate",
-    min(oxK_ratio)
+    JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
 ]
 non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 
+## Back to analysis
 non.duplicated.stoichiometry.dt[
   , (paste0("position_", gsub("-", "m", seq(-10, 10)))) :=
         str_split(sequence, pattern = "")[[1]] %>% as.list,
@@ -308,6 +371,18 @@ ggplot(
 
 ```{r analysis of sequence feature, fig.width = 6, fig.height = 6}
 
+non.duplicated.stoichiometry.dt <-
+    non.duplicated.stoichiometry.dt[
+        total_n_feature_K > 2
+    ]
+
+## Sanity checks
+print("To discuss #1")
+non.duplicated.stoichiometry.dt[
+    JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
+]
+
+
 data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
 
 m.stoichiometry.dt <- melt(
@@ -316,7 +391,7 @@ m.stoichiometry.dt <- melt(
     id.vars = c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
 )
 
-m.stoichiometry.dt[, Z_score := scale(value), by = variable]
+temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 ggplot(
     data = non.duplicated.stoichiometry.dt[order(JMJD6_substrate_flag != "Others")],
@@ -365,6 +440,57 @@ ggplot(
     xlab("Local charge") +
     ylab("Disordedness") +
     ggtitle("Biophysical propety around K")
+
+
+ggplot(
+    data = non.duplicated.stoichiometry.dt[order(JMJD6_substrate_flag != "Others")],
+    aes(
+        x = K_ratio_score,,
+        y = IUPRED2,
+        size = ifelse(
+            JMJD6_substrate_flag == "JMJD6_substrate",
+            oxK_ratio + 0.01,
+            0.01
+        ),
+        fill = JMJD6_substrate_flag,
+        alpha = JMJD6_substrate_flag,
+        shape = JMJD6_substrate_flag
+    )
+) +
+    geom_jitter(width = 0.04, height = 0) +
+    theme(
+        aspect.ratio = 1,
+        legend.position = "bottom",
+        legend.direction = "vertical"
+    ) +
+    scale_size_continuous(name = "Hydroxylation rate [%]") +
+    scale_alpha_manual(
+        values = c(
+            "JMJD6_substrate" = 1,
+            "Others" = 0.075
+        ),
+        name = "JMJD6 substrate"
+    ) +
+    scale_shape_manual(
+        values = c(
+            "JMJD6_substrate" = "circle filled",
+            "Others" = "circle small"
+        ),
+        name = "JMJD6 substrate"
+    ) +
+    scale_fill_manual(values = c(
+                          "JMJD6_substrate" = "#EE6677",
+                          "Others" = "gray60"
+                      ), name = "JMJD6 substrate") +
+    scale_color_manual(values = c(
+                           "TRUE" = "black",
+                           "FALSE" = "gray60"
+                       ), name = "BRDs") +
+    xlab("K-score") +
+    ylab("Disordedness") +
+    ggtitle("Biophysical propety around K")
+
+
 
 ```
 

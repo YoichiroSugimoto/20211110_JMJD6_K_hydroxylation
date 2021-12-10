@@ -1,7 +1,7 @@
 ---
 title: "j0-2 Protein feature extraction 2"
 author: "Yoichiro Sugimoto"
-date: "01 December, 2021"
+date: "09 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -85,7 +85,7 @@ hydropathy.dt <- mcmapply(
     function(x, y){
         scaledHydropathyLocal(
             x,
-            window = 9,
+            window = 11,
             plotResults = FALSE
         ) %>% data.table %>%
             {.[, Accession := y]}
@@ -107,7 +107,7 @@ charge.dt <- mcmapply(
     function(x, y){
         chargeCalculationLocal(
             x,
-            window = 9,
+            window = 11,
             plotResults = FALSE
         ) %>% data.table %>%
             {.[, Accession := y]}
@@ -128,7 +128,7 @@ charge.dt <- mcmapply(
 ```r
 all.biophysic.dt <- merge(
     hydropathy.dt[, .(Accession, Position, WindowHydropathy)],
-    charge.dt[, .(Accession, Position, windowCharge)],
+    charge.dt[, .(Accession, Position, windowCharge, CenterResidue, Window)],
     by = c("Accession", "Position")
 )
 
@@ -136,6 +136,13 @@ fwrite(
     all.biophysic.dt,
     file.path(
         j0.res.dir, "biophysical_property.csv"
+    )
+)
+
+fwrite(
+    charge.dt,
+    file.path(
+        j0.res.dir, "charge_per_position.csv"
     )
 )
 ```
@@ -161,7 +168,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-12-01                  
+##  date     2021-12-09                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package          * version  date       lib source        

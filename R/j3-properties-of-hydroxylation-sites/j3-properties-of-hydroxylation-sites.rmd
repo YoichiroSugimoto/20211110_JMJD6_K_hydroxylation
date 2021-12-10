@@ -243,7 +243,7 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ```{r amino acid enrichment, fig.width = 7}
 
 non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    !(cell %in% c("HeLa_J6KO", "HeLa_J6KO_J6PD")) | is.na(cell)
+    cell %in% c("HeLa_WT", "HeLa_WT_J6PD") | is.na(cell)
 ][
     order(
         JMJD6_substrate_flag == "JMJD6_substrate",
@@ -257,11 +257,12 @@ non.duplicated.stoichiometry.dt <- stoichiometry.dt[
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 ## Sanity checks
-print("To discuss #1")
 non.duplicated.stoichiometry.dt[
     JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
 ]
 non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
+non.duplicated.stoichiometry.dt[, table(cell)]
+non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
 ## Back to analysis
 non.duplicated.stoichiometry.dt[
@@ -373,25 +374,22 @@ ggplot(
 
 non.duplicated.stoichiometry.dt <-
     non.duplicated.stoichiometry.dt[
-        total_n_feature_K > 2
+        total_n_feature_K > 2 &
+        !is.na(windowCharge)
     ]
 
 ## Sanity checks
-print("To discuss #1")
-non.duplicated.stoichiometry.dt[
-    JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
-]
-
+non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
 data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
 
-m.stoichiometry.dt <- melt(
-    non.duplicated.stoichiometry.dt,
-    measure.vars = data.cols,
-    id.vars = c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
-)
-
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
+
+non.duplicated.stoichiometry.dt[
+    JMJD6_substrate_flag == "JMJD6_substrate"
+][order(windowCharge)][, .(
+     Accession, position, Window, windowCharge, IUPRED2
+ )]
 
 ggplot(
     data = non.duplicated.stoichiometry.dt[order(JMJD6_substrate_flag != "Others")],
@@ -414,7 +412,9 @@ ggplot(
         legend.position = "bottom",
         legend.direction = "vertical"
     ) +
-    scale_size_continuous(name = "Hydroxylation rate [%]") +
+    scale_size_continuous(
+        name = "Hydroxylation rate [%]"
+    ) +
     scale_alpha_manual(
         values = c(
             "JMJD6_substrate" = 1,

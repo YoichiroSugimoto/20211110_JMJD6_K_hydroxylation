@@ -1,7 +1,7 @@
 ---
 title: "j4 de novo data analysis"
 author: "Yoichiro Sugimoto"
-date: "05 December, 2021"
+date: "09 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -177,7 +177,7 @@ temp <- sapply(list.files("../functions", full.names = TRUE), source)
 source("../../R/j2-PTM-stoichiometry/functions/stoichiometry_functions.R")
 
 results.dir <- file.path("../../results")
-j4.res.dir <- file.path(results.dir, "j-d-de-novo")
+j4.res.dir <- file.path(results.dir, "j4-de-novo-data-analysis")
 
 create.dirs(c(
     j4.res.dir
@@ -552,7 +552,7 @@ all.score.dt <- all.score.dt[
 ]
 
 all.score.file <- file.path(
-    "../../results", paste0(
+    j4.res.dir, paste0(
                          "all_score_",
                          window.size, "_", denovo.score.cutoff
                        , ".csv"
@@ -562,6 +562,24 @@ fwrite(
     all.score.dt,
     all.score.file
 )
+
+## For QC
+all.score.dt[, c(
+    "cell", "max_oxK_score",
+    "K_count_capped", "Peptide", "Denovo Score", "local confidence (%)"
+), with = FALSE][
+    K_count_capped == "5+"
+][grepl("WT$", cell)] %>%
+    fwrite(file = file.path(j4.res.dir, "K_score_5or6_WT.csv"))
+
+all.score.dt[, c(
+    "cell", "max_oxK_score",
+    "K_count_capped", "Peptide", "Denovo Score", "local confidence (%)"
+), with = FALSE][
+    K_count_capped == "5+"
+][grepl("JMJD6KO$", cell)] %>%
+    fwrite(file = file.path(j4.res.dir, "K_score_5or6_JMJD6KO.csv"))
+
 
 library("ComplexHeatmap")
 ```

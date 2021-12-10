@@ -1,7 +1,7 @@
 ---
 title: "Analysis of lysine hydroxylation stoichiometry and protein features"
 author: "Yoichiro Sugimoto"
-date: "08 December, 2021"
+date: "09 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -329,7 +329,7 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 
 ```r
 non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    !(cell %in% c("HeLa_J6KO", "HeLa_J6KO_J6PD")) | is.na(cell)
+    cell %in% c("HeLa_WT", "HeLa_WT_J6PD") | is.na(cell)
 ][
     order(
         JMJD6_substrate_flag == "JMJD6_substrate",
@@ -348,39 +348,23 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ##    JMJD6_substrate_flag stoichiometry_available unique_protein_N unique_site_N
 ## 1:      JMJD6_substrate                    TRUE               46           117
 ## 2:      JMJD6_substrate                   FALSE               13            41
-## 3:               Others                    TRUE             2012         17215
+## 3:               Others                    TRUE             1992         16943
 ##    JMJD6_substrate_flag stoichiometry_available         cell unique_protein_N
-## 1:      JMJD6_substrate                    TRUE       HEK293                3
-## 2:      JMJD6_substrate                    TRUE      HeLa_WT               16
-## 3:      JMJD6_substrate                    TRUE HeLa_WT_J6PD               37
-## 4:      JMJD6_substrate                    TRUE         MCF7                4
-## 5:      JMJD6_substrate                   FALSE         <NA>               13
-## 6:               Others                    TRUE       HEK293               56
-## 7:               Others                    TRUE      HeLa_WT              437
-## 8:               Others                    TRUE HeLa_WT_J6PD             1928
-## 9:               Others                    TRUE         MCF7               71
+## 1:      JMJD6_substrate                    TRUE      HeLa_WT               16
+## 2:      JMJD6_substrate                    TRUE HeLa_WT_J6PD               37
+## 3:      JMJD6_substrate                   FALSE         <NA>               13
+## 4:               Others                    TRUE      HeLa_WT              437
+## 5:               Others                    TRUE HeLa_WT_J6PD             1938
 ##    unique_site_N
-## 1:            15
-## 2:            36
-## 3:            57
-## 4:             9
-## 5:            41
-## 6:           252
-## 7:          4313
-## 8:         12463
-## 9:           187
+## 1:            59
+## 2:            58
+## 3:            41
+## 4:          4334
+## 5:         12609
 ```
 
 ```r
 ## Sanity checks
-print("To discuss #1")
-```
-
-```
-## [1] "To discuss #1"
-```
-
-```r
 non.duplicated.stoichiometry.dt[
     JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
 ]
@@ -402,7 +386,7 @@ non.duplicated.stoichiometry.dt[
 ## 12:      HeLa_WT  P11387|TOP1_HUMAN     P11387      159 PKKIKTEDTKKEKKRKLEEEE
 ## 13: HeLa_WT_J6PD Q05519|SRS11_HUMAN     Q05519      411 SKDKEKDRERKSESDKDVKQV
 ## 14: HeLa_WT_J6PD  Q13428|TCOF_HUMAN     Q13428     1348 SRKGWESRKRKLSGDQPAART
-## 15:         MCF7 Q13435|SF3B2_HUMAN     Q13435      320 ETEEDTVSVSKKEKNRKRRNR
+## 15: HeLa_WT_J6PD Q13435|SF3B2_HUMAN     Q13435      320 ETEEDTVSVSKKEKNRKRRNR
 ## 16:      HeLa_WT Q13435|SF3B2_HUMAN     Q13435      331 KEKNRKRRNRKKKKKPQRVRG
 ## 17:      HeLa_WT Q13435|SF3B2_HUMAN     Q13435      334 NRKRRNRKKKKKPQRVRGVSS
 ## 18:      HeLa_WT Q13435|SF3B2_HUMAN     Q13435      335 RKRRNRKKKKKPQRVRGVSSE
@@ -472,131 +456,131 @@ non.duplicated.stoichiometry.dt[
 ## 40:                 TRUE      JMJD6_substrate         0                       K
 ##     full_length_seq_flag JMJD6_substrate_flag oxK_ratio residue_at_curated_site
 ##     residue IUPRED2 K_position K_ratio K_ratio_score WindowHydropathy
-##  1:       K  0.9606          1     0.2           0.3       0.31122222
-##  2:       K  0.6851          1     0.3           0.3       0.17411111
-##  3:       K  0.6806          1     0.2           0.3       0.17411111
-##  4:       K  0.6755          1     0.2           0.3       0.17411111
-##  5:       K  0.8530          1     0.2           0.4       0.29144444
-##  6:       K  0.8681          1     0.2           0.3       0.35566667
-##  7:       K  0.6712          1     0.1           0.1       0.40611111
-##  8:       K  0.3774          1     0.4           0.4       0.16055556
-##  9:       K  0.3321          1     0.4           0.4       0.16055556
-## 10:       K  0.8872          1     0.4           0.4       0.13700000
-## 11:       K  0.9287          1     0.4           0.5       0.08277778
-## 12:       K  0.6755          1     0.4           0.5       0.11366667
-## 13:       K  0.7916          1     0.3           0.4       0.14811111
-## 14:       K  0.8375          1     0.1           0.3       0.27166667
-## 15:       K  0.8198          1     0.4           0.4       0.35322222
-## 16:       K  0.7982          1     0.5           0.6       0.04955556
-## 17:       K  0.7799          1     0.2           0.6       0.08533333
-## 18:       K  0.7718          1     0.1           0.6       0.19277778
-## 19:       K  0.6576          1     0.2           0.2       0.40500000
-## 20:       K  0.7629          1     0.2           0.2       0.36411111
-## 21:       K  0.6089          1     0.3           0.4       0.28400000
-## 22:       K  0.8655          1     0.6           0.6       0.13977778
-## 23:       K  0.8713          1     0.7           0.7       0.08911111
-## 24:       K  0.5707          1     0.1           0.1       0.40000000
-## 25:       K  0.2399          1     0.2           0.2       0.24944444
-## 26:       K  0.9013          1     0.5           0.5       0.11600000
-## 27:       K  0.7209          1     0.1           0.3       0.37533333
-## 28:       K  0.8125          1     0.1           0.7       0.18888889
-## 29:       K  0.9329          1     0.2           0.3       0.31733333
-## 30:       K  0.5901          1     0.5           0.6       0.17422222
-## 31:       K  0.7036          1     0.4           0.6       0.24455556
-## 32:       K  0.7951          1     0.3           0.6       0.25688889
-## 33:       K  0.7799          1     0.3           0.5       0.23600000
-## 34:       K  0.7459          1     0.3           0.5       0.31122222
-## 35:       K  0.7799          1     0.5           0.5       0.20133333
-## 36:       K  0.7951          1     0.3           0.4       0.20877778
-## 37:       K  0.7415          1     0.3           0.4       0.30511111
-## 38:       K  0.7718          1     0.2           0.2       0.32600000
-## 39:       K  0.9649          1     0.4           0.4       0.26044444
-## 40:       K  0.3356          1     0.2           0.2       0.31111111
+##  1:       K  0.9606          1     0.2           0.3       0.28390909
+##  2:       K  0.6851          1     0.3           0.3       0.15254545
+##  3:       K  0.6806          1     0.2           0.3       0.15254545
+##  4:       K  0.6755          1     0.2           0.3       0.15254545
+##  5:       K  0.8530          1     0.2           0.4       0.31727273
+##  6:       K  0.8681          1     0.2           0.3       0.30718182
+##  7:       K  0.6712          1     0.1           0.1       0.39590909
+##  8:       K  0.3774          1     0.4           0.4       0.23236364
+##  9:       K  0.3321          1     0.4           0.4       0.28590909
+## 10:       K  0.8872          1     0.4           0.4       0.20900000
+## 11:       K  0.9287          1     0.4           0.5       0.09090909
+## 12:       K  0.6755          1     0.4           0.5       0.13745455
+## 13:       K  0.7916          1     0.3           0.4       0.13336364
+## 14:       K  0.8375          1     0.1           0.3       0.24245455
+## 15:       K  0.8198          1     0.4           0.4       0.32736364
+## 16:       K  0.7982          1     0.5           0.6       0.07590909
+## 17:       K  0.7799          1     0.2           0.6       0.16781818
+## 18:       K  0.7718          1     0.1           0.6       0.15772727
+## 19:       K  0.6576          1     0.2           0.2       0.45154545
+## 20:       K  0.7629          1     0.2           0.2       0.38172727
+## 21:       K  0.6089          1     0.3           0.4       0.27981818
+## 22:       K  0.8655          1     0.6           0.6       0.11436364
+## 23:       K  0.8713          1     0.7           0.7       0.12045455
+## 24:       K  0.5707          1     0.1           0.1       0.36663636
+## 25:       K  0.2399          1     0.2           0.2       0.32836364
+## 26:       K  0.9013          1     0.5           0.5       0.13836364
+## 27:       K  0.7209          1     0.1           0.3       0.31718182
+## 28:       K  0.8125          1     0.1           0.7       0.18990909
+## 29:       K  0.9329          1     0.2           0.3       0.29800000
+## 30:       K  0.5901          1     0.5           0.6       0.14863636
+## 31:       K  0.7036          1     0.4           0.6       0.21627273
+## 32:       K  0.7951          1     0.3           0.6       0.21018182
+## 33:       K  0.7799          1     0.3           0.5       0.21327273
+## 34:       K  0.7459          1     0.3           0.5       0.26472727
+## 35:       K  0.7799          1     0.5           0.5       0.26172727
+## 36:       K  0.7951          1     0.3           0.4       0.32945455
+## 37:       K  0.7415          1     0.3           0.4       0.26272727
+## 38:       K  0.7718          1     0.2           0.2       0.26672727
+## 39:       K  0.9649          1     0.4           0.4       0.28781818
+## 40:       K  0.3356          1     0.2           0.2       0.34845455
 ##     residue IUPRED2 K_position K_ratio K_ratio_score WindowHydropathy
-##     windowCharge total_area_K total_area_oxK total_n_feature_K
-##  1:    0.3304832      3092200              0                 1
-##  2:    0.1088334     15544000              0                 1
-##  3:    0.1090369     15544000              0                 1
-##  4:    0.1090369     15544000              0                 1
-##  5:    0.1083453     35237900              0                19
-##  6:    0.3313776     35237900              0                19
-##  7:   -0.1112312     10320000              0                10
-##  8:    0.3344090   1035400000              0                 5
-##  9:    0.3344090   2206150200              0                 6
-## 10:    0.1175786     24432980              0                15
-## 11:    0.2235841      5188940              0                 5
-## 12:    0.2189674       395630              0                 1
-## 13:   -0.1113537      8528200              0                 7
-## 14:    0.3314587      2533500              0                 8
-## 15:    0.2195772       246829              0                 2
-## 16:    0.8839988     78541000              0                 2
-## 17:    0.7728893     78541000              0                 2
-## 18:    0.6617798     78541000              0                 2
-## 19:    0.1101184    104370000              0                 2
-## 20:    0.3369697    185470000              0                 2
-## 21:    0.4415117   4684755410              0                43
-## 22:    0.5507356      8300500              0                 6
-## 23:    0.6618451      8300500              0                 6
-## 24:    0.1104997     10408000              0                 1
-## 25:    0.5535966      2241800              0                 2
-## 26:    0.5664711      7363900              0                 4
-## 27:    0.1094432     91444930              0                17
-## 28:    0.3353034     10117900              0                11
-## 29:    0.4415117      7010810              0                 3
-## 30:    0.5507513     36438930              0                13
-## 31:    0.4406173     36829160              0                15
-## 32:    0.3295078     36829160              0                15
-## 33:    0.5509548     14011000              0                 1
-## 34:    0.3306867     14011000              0                 1
-## 35:    0.4454374     45521600              0                13
-## 36:    0.5562467    121020000              0                 3
-## 37:    0.3306710    121020000              0                 3
-## 38:    0.2203335     14315270              0                11
-## 39:    0.3359943       716380              0                 1
-## 40:    0.1107032       441510              0                 1
-##     windowCharge total_area_K total_area_oxK total_n_feature_K
-##     total_n_feature_oxK        seq5 MW_within_1 MW_within_2
-##  1:                   0 RDVSKKAKRSP       FALSE       FALSE
-##  2:                   0 RDERLKKEKQE       FALSE       FALSE
-##  3:                   0 DERLKKEKQER       FALSE       FALSE
-##  4:                   0 RLKKEKQEREE       FALSE       FALSE
-##  5:                   0 GSDDKKSSVKS       FALSE       FALSE
-##  6:                   0 KKSSVKSGSRE       FALSE       FALSE
-##  7:                   0 RLLAEKEREMA       FALSE       FALSE
-##  8:                   0 EEFKRKHKKDI       FALSE       FALSE
-##  9:                   0 AEFKRKHKKDI       FALSE       FALSE
-## 10:                   0 LNDSHKHKDKH       FALSE       FALSE
-## 11:                   0 HKEHKKEKDRE       FALSE       FALSE
-## 12:                   0 TEDTKKEKKRK       FALSE       FALSE
-## 13:                   0 KDRERKSESDK       FALSE       FALSE
-## 14:                   0 ESRKRKLSGDQ       FALSE       FALSE
-## 15:                   0 TVSVSKKEKNR       FALSE       FALSE
-## 16:                   0 KRRNRKKKKKP       FALSE       FALSE
-## 17:                   0 NRKKKKKPQRV       FALSE       FALSE
-## 18:                   0 RKKKKKPQRVR       FALSE       FALSE
-## 19:                   0 PYSGPKFNSAI       FALSE       FALSE
-## 20:                   0 LPHSIKLSRRR       FALSE       FALSE
-## 21:                   0 QKKQRKPFSAS       FALSE       FALSE
-## 22:                   0 RKKRGKYKDKR       FALSE       FALSE
-## 23:                   0 GKYKDKRRKKK       FALSE       FALSE
-## 24:                   0 PRELIKVTRDE       FALSE       FALSE
-## 25:                   0 VRGRPKLSRKW       FALSE       FALSE
-## 26:                   0 SHRRHKHKKSK       FALSE       FALSE
-## 27:                   0 RKTNFKGLSED       FALSE       FALSE
-## 28:                   0 KRKKEKHSSTP       FALSE       FALSE
-## 29:                   0 TSKTIKRKSSR       FALSE       FALSE
-## 30:                   0 RKKRTKAKKDK       FALSE       FALSE
-## 31:                   0 KRTKAKKDKAQ       FALSE       FALSE
-## 32:                   0 RTKAKKDKAQR       FALSE       FALSE
-## 33:                   0 DKKERKKMVKE       FALSE        TRUE
-## 34:                   0 RKKMVKEAQRE       FALSE       FALSE
-## 35:                   0 IPKHVKKRKEK       FALSE       FALSE
-## 36:                   0 CHKRYKIQKKV       FALSE       FALSE
-## 37:                   0 RYKIQKKVREH       FALSE       FALSE
-## 38:                   0 RDRSAKYKFSR       FALSE       FALSE
-## 39:                   0 SSSRSKHTKSS       FALSE       FALSE
-## 40:                   0 LERSRKMVTED        TRUE        TRUE
-##     total_n_feature_oxK        seq5 MW_within_1 MW_within_2
+##      windowCharge CenterResidue      Window total_area_K total_area_oxK
+##  1:  3.613031e-01             K RDVSKKAKRSP      3092200              0
+##  2:  8.927831e-02             K RDERLKKEKQE     15544000              0
+##  3:  8.927831e-02             K DERLKKEKQER     15544000              0
+##  4:  8.944481e-02             K RLKKEKQEREE     15544000              0
+##  5:  8.864616e-02             K GSDDKKSSVKS     35237900              0
+##  6:  2.705619e-01             K KKSSVKSGSRE     35237900              0
+##  7: -9.960256e-05             K RLLAEKEREMA     10320000              0
+##  8:  1.829324e-01             K EEFKRKHKKDI   1035400000              0
+##  9:  2.736074e-01             K AEFKRKHKKDI   2206150200              0
+## 10:  9.997793e-02             K LNDSHKHKDKH     24432980              0
+## 11:  9.603473e-02             K HKEHKKEKDRE      5188940              0
+## 12:  2.692648e-01             K TEDTKKEKKRK       395630              0
+## 13:  8.911182e-02             K KDRERKSESDK      8528200              0
+## 14:  1.805185e-01             K ESRKRKLSGDQ      2533500              0
+## 15:  2.705619e-01             K TVSVSKKEKNR      5228650              0
+## 16:  8.133814e-01             K KRRNRKKKKKP     78541000              0
+## 17:  6.323639e-01             K NRKKKKKPQRV     78541000              0
+## 18:  7.232717e-01             K RKKKKKPQRVR     78541000              0
+## 19:  9.009684e-02             K PYSGPKFNSAI    104370000              0
+## 20:  3.666103e-01             K LPHSIKLSRRR    185470000              0
+## 21:  3.612368e-01             K QKKQRKPFSAS   4684755410              0
+## 22:  6.324174e-01             K RKKRGKYKDKR      8300500              0
+## 23:  6.316193e-01             K GKYKDKRRKKK      8300500              0
+## 24: -2.660963e-04             K PRELIKVTRDE     10408000              0
+## 25:  4.529427e-01             K VRGRPKLSRKW      2241800              0
+## 26:  5.535860e-01             K SHRRHKHKKSK      7363900              0
+## 27:  8.961075e-02             K RKTNFKGLSED     91444930              0
+## 28:  3.644488e-01             K KRKKEKHSSTP     10117900              0
+## 29:  4.521446e-01             K TSKTIKRKSSR      7010810              0
+## 30:  6.316322e-01             K RKKRTKAKKDK     36438930              0
+## 31:  4.506147e-01             K KRTKAKKDKAQ     36829160              0
+## 32:  4.514128e-01             K RTKAKKDKAQR     36829160              0
+## 33:  2.692648e-01             K DKKERKKMVKE     14011000              0
+## 34:  2.707947e-01             K RKKMVKEAQRE     14011000              0
+## 35:  4.545585e-01             K IPKHVKKRKEK     45521600              0
+## 36:  4.353016e-01             K CHKRYKIQKKV    121020000              0
+## 37:  3.652341e-01             K RYKIQKKVREH    121020000              0
+## 38:  3.620884e-01             K RDRSAKYKFSR     14315270              0
+## 39:  2.749044e-01             K SSSRSKHTKSS       716380              0
+## 40: -2.660963e-04             K LERSRKMVTED       441510              0
+##      windowCharge CenterResidue      Window total_area_K total_area_oxK
+##     total_n_feature_K total_n_feature_oxK        seq5 MW_within_1 MW_within_2
+##  1:                 1                   0 RDVSKKAKRSP       FALSE       FALSE
+##  2:                 1                   0 RDERLKKEKQE       FALSE       FALSE
+##  3:                 1                   0 DERLKKEKQER       FALSE       FALSE
+##  4:                 1                   0 RLKKEKQEREE       FALSE       FALSE
+##  5:                19                   0 GSDDKKSSVKS       FALSE       FALSE
+##  6:                19                   0 KKSSVKSGSRE       FALSE       FALSE
+##  7:                10                   0 RLLAEKEREMA       FALSE       FALSE
+##  8:                 5                   0 EEFKRKHKKDI       FALSE       FALSE
+##  9:                 6                   0 AEFKRKHKKDI       FALSE       FALSE
+## 10:                15                   0 LNDSHKHKDKH       FALSE       FALSE
+## 11:                 5                   0 HKEHKKEKDRE       FALSE       FALSE
+## 12:                 1                   0 TEDTKKEKKRK       FALSE       FALSE
+## 13:                 7                   0 KDRERKSESDK       FALSE       FALSE
+## 14:                 8                   0 ESRKRKLSGDQ       FALSE       FALSE
+## 15:                 6                   0 TVSVSKKEKNR       FALSE       FALSE
+## 16:                 2                   0 KRRNRKKKKKP       FALSE       FALSE
+## 17:                 2                   0 NRKKKKKPQRV       FALSE       FALSE
+## 18:                 2                   0 RKKKKKPQRVR       FALSE       FALSE
+## 19:                 2                   0 PYSGPKFNSAI       FALSE       FALSE
+## 20:                 2                   0 LPHSIKLSRRR       FALSE       FALSE
+## 21:                43                   0 QKKQRKPFSAS       FALSE       FALSE
+## 22:                 6                   0 RKKRGKYKDKR       FALSE       FALSE
+## 23:                 6                   0 GKYKDKRRKKK       FALSE       FALSE
+## 24:                 1                   0 PRELIKVTRDE       FALSE       FALSE
+## 25:                 2                   0 VRGRPKLSRKW       FALSE       FALSE
+## 26:                 4                   0 SHRRHKHKKSK       FALSE       FALSE
+## 27:                17                   0 RKTNFKGLSED       FALSE       FALSE
+## 28:                11                   0 KRKKEKHSSTP       FALSE       FALSE
+## 29:                 3                   0 TSKTIKRKSSR       FALSE       FALSE
+## 30:                13                   0 RKKRTKAKKDK       FALSE       FALSE
+## 31:                15                   0 KRTKAKKDKAQ       FALSE       FALSE
+## 32:                15                   0 RTKAKKDKAQR       FALSE       FALSE
+## 33:                 1                   0 DKKERKKMVKE       FALSE        TRUE
+## 34:                 1                   0 RKKMVKEAQRE       FALSE       FALSE
+## 35:                13                   0 IPKHVKKRKEK       FALSE       FALSE
+## 36:                 3                   0 CHKRYKIQKKV       FALSE       FALSE
+## 37:                 3                   0 RYKIQKKVREH       FALSE       FALSE
+## 38:                11                   0 RDRSAKYKFSR       FALSE       FALSE
+## 39:                 1                   0 SSSRSKHTKSS       FALSE       FALSE
+## 40:                 1                   0 LERSRKMVTED        TRUE        TRUE
+##     total_n_feature_K total_n_feature_oxK        seq5 MW_within_1 MW_within_2
 ##     stoichiometry_available     Accession_position
 ##  1:                    TRUE O15042|SR140_HUMAN_981
 ##  2:                    TRUE O95232|LC7L3_HUMAN_248
@@ -646,7 +630,27 @@ non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 ```
 
 ```
-## Empty data.table (0 rows and 25 cols): cell,Accession,uniprot_id,position,sequence,full_length_seq_flag...
+## Empty data.table (0 rows and 27 cols): cell,Accession,uniprot_id,position,sequence,full_length_seq_flag...
+```
+
+```r
+non.duplicated.stoichiometry.dt[, table(cell)]
+```
+
+```
+## cell
+##      HeLa_WT HeLa_WT_J6PD 
+##         4393        12667
+```
+
+```r
+non.duplicated.stoichiometry.dt[, table(CenterResidue)]
+```
+
+```
+## CenterResidue
+##           K 
+##     2 17058
 ```
 
 ```r
@@ -761,284 +765,22 @@ ggplot(
 ```r
 non.duplicated.stoichiometry.dt <-
     non.duplicated.stoichiometry.dt[
-        total_n_feature_K > 2
+        total_n_feature_K > 2 &
+        !is.na(windowCharge)
     ]
 
 ## Sanity checks
-print("To discuss #1")
+non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 ```
 
 ```
-## [1] "To discuss #1"
-```
-
-```r
-non.duplicated.stoichiometry.dt[
-    JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
-]
-```
-
-```
-##             cell          Accession uniprot_id position              sequence
-##  1: HeLa_WT_J6PD O95232|LC7L3_HUMAN     O95232      388 EKEKRGSDDKKSSVKSGSREK
-##  2: HeLa_WT_J6PD O95232|LC7L3_HUMAN     O95232      392 RGSDDKKSSVKSGSREKQSED
-##  3: HeLa_WT_J6PD  P02545|LMNA_HUMAN     P02545      341 RDTSRRLLAEKEREMAEMRAR
-##  4:      HeLa_WT P0DMV8|HS71A_HUMAN     P0DMV8      248 VNHFVEEFKRKHKKDISQNKR
-##  5:      HeLa_WT P11142|HSP7C_HUMAN     P11142      248 VNHFIAEFKRKHKKDISENKR
-##  6:      HeLa_WT  P11387|TOP1_HUMAN     P11387       23 EADFRLNDSHKHKDKHKDREH
-##  7:      HeLa_WT  P11387|TOP1_HUMAN     P11387       40 DREHRHKEHKKEKDREKSKHS
-##  8: HeLa_WT_J6PD Q05519|SRS11_HUMAN     Q05519      411 SKDKEKDRERKSESDKDVKQV
-##  9: HeLa_WT_J6PD  Q13428|TCOF_HUMAN     Q13428     1348 SRKGWESRKRKLSGDQPAART
-## 10:      HeLa_WT  Q15059|BRD3_HUMAN     Q15059      643 VKSCLQKKQRKPFSASGKKQA
-## 11: HeLa_WT_J6PD Q66PJ3|AR6P4_HUMAN     Q66PJ3      290 SSSDGRKKRGKYKDKRRKKKK
-## 12: HeLa_WT_J6PD Q66PJ3|AR6P4_HUMAN     Q66PJ3      294 GRKKRGKYKDKRRKKKKKRKK
-## 13:      HeLa_WT  Q6UN15|FIP1_HUMAN     Q6UN15      564 SEEGDSHRRHKHKKSKRSKEG
-## 14: HeLa_WT_J6PD  Q8IWS0|PHF6_HUMAN     Q8IWS0      173 RKGRPRKTNFKGLSEDTRSTS
-## 15: HeLa_WT_J6PD Q8N9Q2|SR1IP_HUMAN     Q8N9Q2      142 KKEKKKRKKEKHSSTPNSSEF
-## 16: HeLa_WT_J6PD Q8WXA9|SREK1_HUMAN     Q8WXA9      400 SRSPRTSKTIKRKSSRSPSPR
-## 17: HeLa_WT_J6PD Q96SB4|SRPK1_HUMAN     Q96SB4       16 LALQARKKRTKAKKDKAQRKS
-## 18: HeLa_WT_J6PD Q96SB4|SRPK1_HUMAN     Q96SB4       18 LQARKKRTKAKKDKAQRKSET
-## 19: HeLa_WT_J6PD Q96SB4|SRPK1_HUMAN     Q96SB4       19 QARKKRTKAKKDKAQRKSETQ
-## 20: HeLa_WT_J6PD Q9BRS2|RIOK1_HUMAN     Q9BRS2      555 KRKNKIPKHVKKRKEKTAKTK
-## 21:      HeLa_WT  Q9BVP2|GNL3_HUMAN     Q9BVP2       20 SKRMTCHKRYKIQKKVREHHR
-## 22:      HeLa_WT  Q9BVP2|GNL3_HUMAN     Q9BVP2       23 MTCHKRYKIQKKVREHHRKLR
-## 23: HeLa_WT_J6PD Q9NQ29|LUC7L_HUMAN     Q9NQ29      323 HRRASRDRSAKYKFSRERASR
-##             cell          Accession uniprot_id position              sequence
-##     full_length_seq_flag JMJD6_substrate_flag oxK_ratio residue_at_curated_site
-##  1:                 TRUE      JMJD6_substrate         0                       K
-##  2:                 TRUE      JMJD6_substrate         0                       K
-##  3:                 TRUE      JMJD6_substrate         0                       K
-##  4:                 TRUE      JMJD6_substrate         0                       K
-##  5:                 TRUE      JMJD6_substrate         0                       K
-##  6:                 TRUE      JMJD6_substrate         0                       K
-##  7:                 TRUE      JMJD6_substrate         0                       K
-##  8:                 TRUE      JMJD6_substrate         0                       K
-##  9:                 TRUE      JMJD6_substrate         0                       K
-## 10:                 TRUE      JMJD6_substrate         0                       K
-## 11:                 TRUE      JMJD6_substrate         0                       K
-## 12:                 TRUE      JMJD6_substrate         0                       K
-## 13:                 TRUE      JMJD6_substrate         0                       K
-## 14:                 TRUE      JMJD6_substrate         0                       K
-## 15:                 TRUE      JMJD6_substrate         0                       K
-## 16:                 TRUE      JMJD6_substrate         0                       K
-## 17:                 TRUE      JMJD6_substrate         0                       K
-## 18:                 TRUE      JMJD6_substrate         0                       K
-## 19:                 TRUE      JMJD6_substrate         0                       K
-## 20:                 TRUE      JMJD6_substrate         0                       K
-## 21:                 TRUE      JMJD6_substrate         0                       K
-## 22:                 TRUE      JMJD6_substrate         0                       K
-## 23:                 TRUE      JMJD6_substrate         0                       K
-##     full_length_seq_flag JMJD6_substrate_flag oxK_ratio residue_at_curated_site
-##     residue IUPRED2 K_position K_ratio K_ratio_score WindowHydropathy
-##  1:       K  0.8530          1     0.2           0.4       0.29144444
-##  2:       K  0.8681          1     0.2           0.3       0.35566667
-##  3:       K  0.6712          1     0.1           0.1       0.40611111
-##  4:       K  0.3774          1     0.4           0.4       0.16055556
-##  5:       K  0.3321          1     0.4           0.4       0.16055556
-##  6:       K  0.8872          1     0.4           0.4       0.13700000
-##  7:       K  0.9287          1     0.4           0.5       0.08277778
-##  8:       K  0.7916          1     0.3           0.4       0.14811111
-##  9:       K  0.8375          1     0.1           0.3       0.27166667
-## 10:       K  0.6089          1     0.3           0.4       0.28400000
-## 11:       K  0.8655          1     0.6           0.6       0.13977778
-## 12:       K  0.8713          1     0.7           0.7       0.08911111
-## 13:       K  0.9013          1     0.5           0.5       0.11600000
-## 14:       K  0.7209          1     0.1           0.3       0.37533333
-## 15:       K  0.8125          1     0.1           0.7       0.18888889
-## 16:       K  0.9329          1     0.2           0.3       0.31733333
-## 17:       K  0.5901          1     0.5           0.6       0.17422222
-## 18:       K  0.7036          1     0.4           0.6       0.24455556
-## 19:       K  0.7951          1     0.3           0.6       0.25688889
-## 20:       K  0.7799          1     0.5           0.5       0.20133333
-## 21:       K  0.7951          1     0.3           0.4       0.20877778
-## 22:       K  0.7415          1     0.3           0.4       0.30511111
-## 23:       K  0.7718          1     0.2           0.2       0.32600000
-##     residue IUPRED2 K_position K_ratio K_ratio_score WindowHydropathy
-##     windowCharge total_area_K total_area_oxK total_n_feature_K
-##  1:    0.1083453     35237900              0                19
-##  2:    0.3313776     35237900              0                19
-##  3:   -0.1112312     10320000              0                10
-##  4:    0.3344090   1035400000              0                 5
-##  5:    0.3344090   2206150200              0                 6
-##  6:    0.1175786     24432980              0                15
-##  7:    0.2235841      5188940              0                 5
-##  8:   -0.1113537      8528200              0                 7
-##  9:    0.3314587      2533500              0                 8
-## 10:    0.4415117   4684755410              0                43
-## 11:    0.5507356      8300500              0                 6
-## 12:    0.6618451      8300500              0                 6
-## 13:    0.5664711      7363900              0                 4
-## 14:    0.1094432     91444930              0                17
-## 15:    0.3353034     10117900              0                11
-## 16:    0.4415117      7010810              0                 3
-## 17:    0.5507513     36438930              0                13
-## 18:    0.4406173     36829160              0                15
-## 19:    0.3295078     36829160              0                15
-## 20:    0.4454374     45521600              0                13
-## 21:    0.5562467    121020000              0                 3
-## 22:    0.3306710    121020000              0                 3
-## 23:    0.2203335     14315270              0                11
-##     windowCharge total_area_K total_area_oxK total_n_feature_K
-##     total_n_feature_oxK        seq5 MW_within_1 MW_within_2
-##  1:                   0 GSDDKKSSVKS       FALSE       FALSE
-##  2:                   0 KKSSVKSGSRE       FALSE       FALSE
-##  3:                   0 RLLAEKEREMA       FALSE       FALSE
-##  4:                   0 EEFKRKHKKDI       FALSE       FALSE
-##  5:                   0 AEFKRKHKKDI       FALSE       FALSE
-##  6:                   0 LNDSHKHKDKH       FALSE       FALSE
-##  7:                   0 HKEHKKEKDRE       FALSE       FALSE
-##  8:                   0 KDRERKSESDK       FALSE       FALSE
-##  9:                   0 ESRKRKLSGDQ       FALSE       FALSE
-## 10:                   0 QKKQRKPFSAS       FALSE       FALSE
-## 11:                   0 RKKRGKYKDKR       FALSE       FALSE
-## 12:                   0 GKYKDKRRKKK       FALSE       FALSE
-## 13:                   0 SHRRHKHKKSK       FALSE       FALSE
-## 14:                   0 RKTNFKGLSED       FALSE       FALSE
-## 15:                   0 KRKKEKHSSTP       FALSE       FALSE
-## 16:                   0 TSKTIKRKSSR       FALSE       FALSE
-## 17:                   0 RKKRTKAKKDK       FALSE       FALSE
-## 18:                   0 KRTKAKKDKAQ       FALSE       FALSE
-## 19:                   0 RTKAKKDKAQR       FALSE       FALSE
-## 20:                   0 IPKHVKKRKEK       FALSE       FALSE
-## 21:                   0 CHKRYKIQKKV       FALSE       FALSE
-## 22:                   0 RYKIQKKVREH       FALSE       FALSE
-## 23:                   0 RDRSAKYKFSR       FALSE       FALSE
-##     total_n_feature_oxK        seq5 MW_within_1 MW_within_2
-##     stoichiometry_available     Accession_position position_m10 position_m9
-##  1:                    TRUE O95232|LC7L3_HUMAN_388            E           K
-##  2:                    TRUE O95232|LC7L3_HUMAN_392            R           G
-##  3:                    TRUE  P02545|LMNA_HUMAN_341            R           D
-##  4:                    TRUE P0DMV8|HS71A_HUMAN_248            V           N
-##  5:                    TRUE P11142|HSP7C_HUMAN_248            V           N
-##  6:                    TRUE   P11387|TOP1_HUMAN_23            E           A
-##  7:                    TRUE   P11387|TOP1_HUMAN_40            D           R
-##  8:                    TRUE Q05519|SRS11_HUMAN_411            S           K
-##  9:                    TRUE Q13428|TCOF_HUMAN_1348            S           R
-## 10:                    TRUE  Q15059|BRD3_HUMAN_643            V           K
-## 11:                    TRUE Q66PJ3|AR6P4_HUMAN_290            S           S
-## 12:                    TRUE Q66PJ3|AR6P4_HUMAN_294            G           R
-## 13:                    TRUE  Q6UN15|FIP1_HUMAN_564            S           E
-## 14:                    TRUE  Q8IWS0|PHF6_HUMAN_173            R           K
-## 15:                    TRUE Q8N9Q2|SR1IP_HUMAN_142            K           K
-## 16:                    TRUE Q8WXA9|SREK1_HUMAN_400            S           R
-## 17:                    TRUE  Q96SB4|SRPK1_HUMAN_16            L           A
-## 18:                    TRUE  Q96SB4|SRPK1_HUMAN_18            L           Q
-## 19:                    TRUE  Q96SB4|SRPK1_HUMAN_19            Q           A
-## 20:                    TRUE Q9BRS2|RIOK1_HUMAN_555            K           R
-## 21:                    TRUE   Q9BVP2|GNL3_HUMAN_20            S           K
-## 22:                    TRUE   Q9BVP2|GNL3_HUMAN_23            M           T
-## 23:                    TRUE Q9NQ29|LUC7L_HUMAN_323            H           R
-##     stoichiometry_available     Accession_position position_m10 position_m9
-##     position_m8 position_m7 position_m6 position_m5 position_m4 position_m3
-##  1:           E           K           R           G           S           D
-##  2:           S           D           D           K           K           S
-##  3:           T           S           R           R           L           L
-##  4:           H           F           V           E           E           F
-##  5:           H           F           I           A           E           F
-##  6:           D           F           R           L           N           D
-##  7:           E           H           R           H           K           E
-##  8:           D           K           E           K           D           R
-##  9:           K           G           W           E           S           R
-## 10:           S           C           L           Q           K           K
-## 11:           S           D           G           R           K           K
-## 12:           K           K           R           G           K           Y
-## 13:           E           G           D           S           H           R
-## 14:           G           R           P           R           K           T
-## 15:           E           K           K           K           R           K
-## 16:           S           P           R           T           S           K
-## 17:           L           Q           A           R           K           K
-## 18:           A           R           K           K           R           T
-## 19:           R           K           K           R           T           K
-## 20:           K           N           K           I           P           K
-## 21:           R           M           T           C           H           K
-## 22:           C           H           K           R           Y           K
-## 23:           R           A           S           R           D           R
-##     position_m8 position_m7 position_m6 position_m5 position_m4 position_m3
-##     position_m2 position_m1 position_0 position_1 position_2 position_3
-##  1:           D           K          K          S          S          V
-##  2:           S           V          K          S          G          S
-##  3:           A           E          K          E          R          E
-##  4:           K           R          K          H          K          K
-##  5:           K           R          K          H          K          K
-##  6:           S           H          K          H          K          D
-##  7:           H           K          K          E          K          D
-##  8:           E           R          K          S          E          S
-##  9:           K           R          K          L          S          G
-## 10:           Q           R          K          P          F          S
-## 11:           R           G          K          Y          K          D
-## 12:           K           D          K          R          R          K
-## 13:           R           H          K          H          K          K
-## 14:           N           F          K          G          L          S
-## 15:           K           E          K          H          S          S
-## 16:           T           I          K          R          K          S
-## 17:           R           T          K          A          K          K
-## 18:           K           A          K          K          D          K
-## 19:           A           K          K          D          K          A
-## 20:           H           V          K          K          R          K
-## 21:           R           Y          K          I          Q          K
-## 22:           I           Q          K          K          V          R
-## 23:           S           A          K          Y          K          F
-##     position_m2 position_m1 position_0 position_1 position_2 position_3
-##     position_4 position_5 position_6 position_7 position_8 position_9
-##  1:          K          S          G          S          R          E
-##  2:          R          E          K          Q          S          E
-##  3:          M          A          E          M          R          A
-##  4:          D          I          S          Q          N          K
-##  5:          D          I          S          E          N          K
-##  6:          K          H          K          D          R          E
-##  7:          R          E          K          S          K          H
-##  8:          D          K          D          V          K          Q
-##  9:          D          Q          P          A          A          R
-## 10:          A          S          G          K          K          Q
-## 11:          K          R          R          K          K          K
-## 12:          K          K          K          K          R          K
-## 13:          S          K          R          S          K          E
-## 14:          E          D          T          R          S          T
-## 15:          T          P          N          S          S          E
-## 16:          S          R          S          P          S          P
-## 17:          D          K          A          Q          R          K
-## 18:          A          Q          R          K          S          E
-## 19:          Q          R          K          S          E          T
-## 20:          E          K          T          A          K          T
-## 21:          K          V          R          E          H          H
-## 22:          E          H          H          R          K          L
-## 23:          S          R          E          R          A          S
-##     position_4 position_5 position_6 position_7 position_8 position_9
-##     position_10
-##  1:           K
-##  2:           D
-##  3:           R
-##  4:           R
-##  5:           R
-##  6:           H
-##  7:           S
-##  8:           V
-##  9:           T
-## 10:           A
-## 11:           K
-## 12:           K
-## 13:           G
-## 14:           S
-## 15:           F
-## 16:           R
-## 17:           S
-## 18:           T
-## 19:           Q
-## 20:           K
-## 21:           R
-## 22:           R
-## 23:           R
-##     position_10
+## CenterResidue
+##     K 
+## 17036
 ```
 
 ```r
 data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
-
-m.stoichiometry.dt <- melt(
-    non.duplicated.stoichiometry.dt,
-    measure.vars = data.cols,
-    id.vars = c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
-)
 
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ```
@@ -1046,26 +788,124 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ```
 ## [1] "Positions and proteins in aggregated data:"
 ##    JMJD6_substrate_flag stoichiometry_available unique_protein_N unique_site_N
-## 1:      JMJD6_substrate                    TRUE               40            94
-## 2:               Others                    TRUE             2012         17215
+## 1:      JMJD6_substrate                    TRUE               39            93
+## 2:               Others                    TRUE             1992         16943
 ##    JMJD6_substrate_flag stoichiometry_available         cell unique_protein_N
-## 1:      JMJD6_substrate                    TRUE       HEK293                3
-## 2:      JMJD6_substrate                    TRUE      HeLa_WT               10
-## 3:      JMJD6_substrate                    TRUE HeLa_WT_J6PD               33
-## 4:      JMJD6_substrate                    TRUE         MCF7                3
-## 5:               Others                    TRUE       HEK293               56
-## 6:               Others                    TRUE      HeLa_WT              437
-## 7:               Others                    TRUE HeLa_WT_J6PD             1928
-## 8:               Others                    TRUE         MCF7               71
+## 1:      JMJD6_substrate                    TRUE      HeLa_WT                9
+## 2:      JMJD6_substrate                    TRUE HeLa_WT_J6PD               32
+## 3:               Others                    TRUE      HeLa_WT              437
+## 4:               Others                    TRUE HeLa_WT_J6PD             1938
 ##    unique_site_N
-## 1:            15
-## 2:            23
-## 3:            48
-## 4:             8
-## 5:           252
-## 6:          4313
-## 7:         12463
-## 8:           187
+## 1:            45
+## 2:            48
+## 3:          4334
+## 4:         12609
+```
+
+```r
+non.duplicated.stoichiometry.dt[
+    JMJD6_substrate_flag == "JMJD6_substrate"
+][order(windowCharge)][, .(
+     Accession, position, Window, windowCharge, IUPRED2
+ )]
+```
+
+```
+##              Accession position      Window  windowCharge IUPRED2
+##  1: P26368|U2AF2_HUMAN       15 QLNENKQERDK -1.064196e-03  0.8162
+##  2:  P02545|LMNA_HUMAN      341 RLLAEKEREMA -9.960256e-05  0.6712
+##  3: P26368|U2AF2_HUMAN       70 LTRGAKEEHGG  3.444825e-03  0.8375
+##  4: P18077|RL35A_HUMAN       45 EFYLGKRCAYV  7.050756e-02  0.1671
+##  5:  O60885|BRD4_HUMAN      561 EVEENKKSKAK  8.841388e-02  0.9126
+##  6:  O60885|BRD4_HUMAN      562 VEENKKSKAKE  8.841388e-02  0.8920
+##  7:  O60885|BRD4_HUMAN      332 PVKPPKKDVPD  8.864616e-02  0.9433
+##  8: O95232|LC7L3_HUMAN      388 GSDDKKSSVKS  8.864616e-02  0.8530
+##  9: Q05519|SRS11_HUMAN      411 KDRERKSESDK  8.911182e-02  0.7916
+## 10: Q05519|SRS11_HUMAN      242 IEPDKKEEKRR  8.927831e-02  0.7951
+## 11:  Q8IWS0|PHF6_HUMAN      173 RKTNFKGLSED  8.961075e-02  0.7209
+## 12:  P11387|TOP1_HUMAN       40 HKEHKKEKDRE  9.603473e-02  0.9287
+## 13:  P11387|TOP1_HUMAN       25 DSHKHKDKHKD  9.924617e-02  0.9081
+## 14:  P11387|TOP1_HUMAN       23 LNDSHKHKDKH  9.997793e-02  0.8872
+## 15: O43143|DHX15_HUMAN       18 YPSGKKRAGTD  1.802729e-01  0.8530
+## 16:  Q15059|BRD3_HUMAN      364 STVKRKMDGRE  1.805185e-01  0.7120
+## 17:  Q13428|TCOF_HUMAN     1348 ESRKRKLSGDQ  1.805185e-01  0.8375
+## 18: P0DMV8|HS71A_HUMAN      248 EEFKRKHKKDI  1.829324e-01  0.3774
+## 19:  P11387|TOP1_HUMAN       36 REHRHKEHKKE  1.914515e-01  0.9190
+## 20:  O60885|BRD4_HUMAN      544 KEKDKKEKKKE  2.679015e-01  0.8872
+## 21:  P62851|RS25_HUMAN       14 KKDAGKSAKKD  2.688655e-01  0.7982
+## 22:  O60885|BRD4_HUMAN      537 QQNKPKKKEKD  2.690320e-01  0.9106
+## 23:  Q6PD62|CTR9_HUMAN      993 KAEKKKAPKPE  2.691985e-01  0.9649
+## 24:  O60885|BRD4_HUMAN      535 QPQQNKPKKKE  2.697638e-01  0.8920
+## 25:  P35251|RFC1_HUMAN       38 TLKAKKGIKEI  2.697638e-01  0.5707
+## 26:  O60885|BRD4_HUMAN      572 EPPPKKTKKNN  2.697638e-01  0.9329
+## 27:  Q15059|BRD3_HUMAN      651 SASGKKQAAKS  2.703290e-01  0.7250
+## 28:  O60885|BRD4_HUMAN      291 KGVKRKADTTT  2.703954e-01  0.8623
+## 29:  Q15059|BRD3_HUMAN      684 LSSSKKPARKE  2.705619e-01  0.8313
+## 30: O95232|LC7L3_HUMAN      392 KKSSVKSGSRE  2.705619e-01  0.8681
+## 31: Q13435|SF3B2_HUMAN      320 TVSVSKKEKNR  2.705619e-01  0.8198
+## 32:  O60885|BRD4_HUMAN      552 KKEKHKRKEEV  2.732086e-01  0.8565
+## 33: P11142|HSP7C_HUMAN      248 AEFKRKHKKDI  2.736074e-01  0.3321
+## 34:  P83731|RL24_HUMAN       61 RRKHKKGQSEE  2.745720e-01  0.5456
+## 35:  P11387|TOP1_HUMAN       39 RHKEHKKEKDR  2.776175e-01  0.9249
+## 36:  O60885|BRD4_HUMAN      541 PKKKEKDKKEK  3.585764e-01  0.9287
+## 37:  O60885|BRD4_HUMAN      538 QNKPKKKEKDK  3.591417e-01  0.9106
+## 38:  P25440|BRD2_HUMAN      755 TKKPPKKANEK  3.598734e-01  0.8713
+## 39:  O60885|BRD4_HUMAN      575 PKKTKKNNSSN  3.604387e-01  0.9168
+## 40:  P25440|BRD2_HUMAN      589 PKKSKKASGSG  3.604387e-01  0.9562
+## 41:  P25440|BRD2_HUMAN      586 PPQPKKSKKAS  3.604387e-01  0.9664
+## 42: Q08945|SSRP1_HUMAN      524 QLKKAKMAKDR  3.605050e-01  0.6948
+## 43:  Q14839|CHD4_HUMAN       67 DPKIPKSKRQK  3.605050e-01  0.8493
+## 44:  O60885|BRD4_HUMAN      289 TKKGVKRKADT  3.605050e-01  0.9126
+## 45:  Q2NL82|TSR1_HUMAN       42 LKTLSKKVRKE  3.606715e-01  0.5139
+## 46:  Q8TDN6|BRX1_HUMAN       17 FAVQAKKPKRN  3.612368e-01  0.6227
+## 47:  Q15059|BRD3_HUMAN      683 QLSSSKKPARK  3.612368e-01  0.8530
+## 48:  Q15059|BRD3_HUMAN      643 QKKQRKPFSAS  3.612368e-01  0.6089
+## 49: Q9NQ29|LUC7L_HUMAN      323 RDRSAKYKFSR  3.620884e-01  0.7718
+## 50: Q9NQ29|LUC7L_HUMAN      325 RSAKYKFSRER  3.622549e-01  0.6851
+## 51:  O60885|BRD4_HUMAN      547 DKKEKKKEKHK  3.623537e-01  0.8313
+## 52:  O60885|BRD4_HUMAN      550 EKKKEKHKRKE  3.633183e-01  0.8681
+## 53:  Q9BZ95|NSD3_HUMAN      199 KEKRKKSNKHD  3.637170e-01  0.8872
+## 54:  O60885|BRD4_HUMAN      727 APKSKKKGHPG  3.642160e-01  0.9684
+## 55: Q8N9Q2|SR1IP_HUMAN      142 KRKKEKHSSTP  3.644488e-01  0.8125
+## 56:  Q9BVP2|GNL3_HUMAN       23 RYKIQKKVREH  3.652341e-01  0.7415
+## 57: Q9Y383|LC7L2_HUMAN      266 SRSHSKNPKRS  3.658122e-01  0.9039
+## 58:  Q9BVP2|GNL3_HUMAN       20 CHKRYKIQKKV  4.353016e-01  0.7951
+## 59:  O60885|BRD4_HUMAN      539 NKPKKKEKDKK  4.492514e-01  0.9308
+## 60:  Q15059|BRD3_HUMAN      489 PVNKPKKKKEK  4.499831e-01  0.8279
+## 61:   P10412|H14_HUMAN      174 KAKSPKKAKAA  4.505484e-01  0.8596
+## 62:   P10412|H14_HUMAN      180 KAKAAKPKKAP  4.505484e-01  0.9269
+## 63:   P10412|H14_HUMAN      175 AKSPKKAKAAK  4.505484e-01  0.8920
+## 64:  Q15059|BRD3_HUMAN      487 QAPVNKPKKKK  4.505484e-01  0.7718
+## 65: Q96SB4|SRPK1_HUMAN       18 KRTKAKKDKAQ  4.506147e-01  0.7036
+## 66:  Q9BVP2|GNL3_HUMAN      221 ITKRVKAKKNA  4.513465e-01  0.4441
+## 67: Q96SB4|SRPK1_HUMAN       19 RTKAKKDKAQR  4.514128e-01  0.7951
+## 68:  P25440|BRD2_HUMAN      546 PISKPKRKREK  4.515793e-01  0.8198
+## 69:  Q12873|CHD3_HUMAN       55 RKRGPKKQKEN  4.515793e-01  0.8828
+## 70: Q5BKY9|F133B_HUMAN       90 ESSSKKRQRKK  4.515793e-01  0.8013
+## 71: Q8WXA9|SREK1_HUMAN      397 SPRTSKTIKRK  4.521446e-01  0.9211
+## 72: Q8WXA9|SREK1_HUMAN      400 TSKTIKRKSSR  4.521446e-01  0.9329
+## 73: Q8N9Q2|SR1IP_HUMAN      139 EKKKRKKEKHS  4.539932e-01  0.9190
+## 74:  Q6UN15|FIP1_HUMAN      569 KHKKSKRSKEG  4.545585e-01  0.9230
+## 75: Q9BRS2|RIOK1_HUMAN      555 IPKHVKKRKEK  4.545585e-01  0.7799
+## 76: Q9Y383|LC7L2_HUMAN      269 HSKNPKRSRSR  4.567199e-01  0.9433
+## 77: Q08945|SSRP1_HUMAN      521 KRKQLKKAKMA  5.414562e-01  0.7331
+## 78:  O60885|BRD4_HUMAN      286 PVKTKKGVKRK  5.414562e-01  0.8894
+## 79:   P62081|RS7_HUMAN      113 SRTKNKQKRPR  5.430524e-01  0.8655
+## 80:  O60885|BRD4_HUMAN      548 KKEKKKEKHKR  5.441029e-01  0.8421
+## 81: Q8N9Q2|SR1IP_HUMAN      140 KKKRKKEKHSS  5.446682e-01  0.9211
+## 82: Q9BRS2|RIOK1_HUMAN      552 KNKIPKHVKKR  5.452334e-01  0.8162
+## 83:  Q6UN15|FIP1_HUMAN      564 SHRRHKHKKSK  5.535860e-01  0.9013
+## 84:   P62241|RS8_HUMAN      144 KKRSKKIQKKY  6.315530e-01  0.4652
+## 85: Q66PJ3|AR6P4_HUMAN      294 GKYKDKRRKKK  6.316193e-01  0.8713
+## 86: Q96SB4|SRPK1_HUMAN       16 RKKRTKAKKDK  6.316322e-01  0.5901
+## 87: Q66PJ3|AR6P4_HUMAN      292 KRGKYKDKRRK  6.324174e-01  0.8681
+## 88: Q66PJ3|AR6P4_HUMAN      290 RKKRGKYKDKR  6.324174e-01  0.8655
+## 89:  Q6UN15|FIP1_HUMAN      567 RHKHKKSKRSK  6.399185e-01  0.9168
+## 90:  Q6UN15|FIP1_HUMAN      566 RRHKHKKSKRS  6.407166e-01  0.8966
+## 91:  P46100|ATRX_HUMAN     1424 YKQKKKRRRIK  7.232589e-01  0.6531
+## 92: Q13435|SF3B2_HUMAN      332 RRNRKKKKKPQ  7.232717e-01  0.7672
+## 93:  P46100|ATRX_HUMAN     1422 RSYKQKKKRRR  7.240570e-01  0.5992
+##              Accession position      Window  windowCharge IUPRED2
 ```
 
 ```r
@@ -1090,7 +930,9 @@ ggplot(
         legend.position = "bottom",
         legend.direction = "vertical"
     ) +
-    scale_size_continuous(name = "Hydroxylation rate [%]") +
+    scale_size_continuous(
+        name = "Hydroxylation rate [%]"
+    ) +
     scale_alpha_manual(
         values = c(
             "JMJD6_substrate" = 1,
@@ -1116,10 +958,6 @@ ggplot(
     xlab("Local charge") +
     ylab("Disordedness") +
     ggtitle("Biophysical propety around K")
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_point).
 ```
 
 ![](j3-properties-of-hydroxylation-sites_files/figure-html/analysis of sequence feature-1.png)<!-- -->
@@ -1197,7 +1035,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-12-08                  
+##  date     2021-12-10                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

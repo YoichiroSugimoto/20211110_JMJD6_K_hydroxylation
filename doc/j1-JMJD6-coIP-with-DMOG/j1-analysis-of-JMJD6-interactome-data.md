@@ -1,7 +1,7 @@
 ---
 title: "j1 Analysis of JMJD6 co-IP data with DMOG treatment"
 author: "Yoichiro Sugimoto"
-date: "01 December, 2021"
+date: "12 December, 2021"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}

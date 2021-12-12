@@ -1,7 +1,7 @@
 ---
 title: "j0-1. Protein feature extraction (1/2)"
 author: "Yoichiro Sugimoto"
-date: "09 December, 2021"
+date: "12 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -36,6 +36,14 @@ processors <- 8
 
 ```r
 results.dir <- normalizePath(file.path("../../results"))
+```
+
+```
+## Warning in normalizePath(file.path("../../results")): path[1]="../../results":
+## No such file or directory
+```
+
+```r
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
 
 ind.fa.dir <- file.path(j0.res.dir, "individual_fastas")
@@ -44,9 +52,8 @@ iupred2.dir <- normalizePath(file.path(j0.res.dir, "IUPred2_score"))
 
 ```
 ## Warning in normalizePath(file.path(j0.res.dir, "IUPred2_score")):
-## path[1]="/camp/lab/ratcliffep/home/users/sugimoy/CAMP_HPC/projects/
-## 20211110_JMJD6_K_hydroxylation/results/j0-data-preprocessing/IUPred2_score": No
-## such file or directory
+## path[1]="../../results/j0-data-preprocessing/IUPred2_score": No such file or
+## directory
 ```
 
 ```r
@@ -98,21 +105,19 @@ temp <- mclapply(
     mc.cores = processors
 )
 
-x <- 1
-
-cur.dir <- getwd()
-setwd(normalizePath(ind.fa.dir))
-
 temp <- mclapply(
     1:length(all.protein.bs),
     function(x){
         paste(
             "python",
             file.path("/camp/lab/ratcliffep/home/users/sugimoy/CAMP_HPC/software/source_files/iupred2a/iupred2a.py"),
-            paste0(
-                str_split_fixed(
-                    names(all.protein.bs)[x], "\\|", 2
-                )[, 1], ".fa"),
+            file.path(
+                ind.fa.dir,
+                paste0(
+                    str_split_fixed(
+                        names(all.protein.bs)[x], "\\|", 2
+                    )[, 1], ".fa")
+            ),
             "long", ">",
             file.path(
                 iupred2.dir,
@@ -127,8 +132,6 @@ temp <- mclapply(
     },
     mc.cores = processors
 )
-
-setwd(cur.dir)
 
 all.iupred2.dt <- mcmapply(
     function(x, y){
@@ -299,7 +302,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-12-09                  
+##  date     2021-12-12                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package          * version  date       lib source        

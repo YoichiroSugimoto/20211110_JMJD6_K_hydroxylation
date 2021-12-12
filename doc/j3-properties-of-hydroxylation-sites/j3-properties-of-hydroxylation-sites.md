@@ -1,7 +1,7 @@
 ---
 title: "Analysis of lysine hydroxylation stoichiometry and protein features"
 author: "Yoichiro Sugimoto"
-date: "09 December, 2021"
+date: "12 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -134,7 +134,7 @@ manually.curated.hydroxylation.dt[, list(
 
 
 ```r
-## cells <- c(
+## data_sources <- c(
 ##     "HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD"
 ## )
 
@@ -186,9 +186,9 @@ reportOxKSiteStats <- function(stoichiometry.dt){
     by = list(
         JMJD6_substrate_flag,
         stoichiometry_available,
-        cell
+        data_source
     )
-    ][order(JMJD6_substrate_flag, cell)] %>%
+    ][order(JMJD6_substrate_flag, data_source)] %>%
         print
 
     return()
@@ -200,37 +200,41 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ```
 ## [1] "Positions and proteins in aggregated data:"
 ##    JMJD6_substrate_flag stoichiometry_available unique_protein_N unique_site_N
-## 1:      JMJD6_substrate                    TRUE               46           122
-## 2:      JMJD6_substrate                   FALSE               13            41
-## 3:               Others                    TRUE             4044         46332
-##     JMJD6_substrate_flag stoichiometry_available           cell
-##  1:      JMJD6_substrate                    TRUE         HEK293
-##  2:      JMJD6_substrate                    TRUE      HeLa_J6KO
-##  3:      JMJD6_substrate                    TRUE HeLa_J6KO_J6PD
-##  4:      JMJD6_substrate                    TRUE        HeLa_WT
-##  5:      JMJD6_substrate                    TRUE   HeLa_WT_J6PD
-##  6:      JMJD6_substrate                    TRUE           MCF7
-##  7:      JMJD6_substrate                   FALSE           <NA>
-##  8:               Others                    TRUE         HEK293
-##  9:               Others                    TRUE      HeLa_J6KO
-## 10:               Others                    TRUE HeLa_J6KO_J6PD
-## 11:               Others                    TRUE        HeLa_WT
-## 12:               Others                    TRUE   HeLa_WT_J6PD
-## 13:               Others                    TRUE           MCF7
+## 1:      JMJD6_substrate                    TRUE               51           156
+## 2:      JMJD6_substrate                   FALSE                3             7
+## 3:               Others                    TRUE             4172         49499
+##     JMJD6_substrate_flag stoichiometry_available           data_source
+##  1:      JMJD6_substrate                    TRUE         HEK293_WT_JQ1
+##  2:      JMJD6_substrate                    TRUE HeLa_JMJD6FLAG_FLAGIP
+##  3:      JMJD6_substrate                    TRUE    HeLa_JMJD6KO_J6pep
+##  4:      JMJD6_substrate                    TRUE      HeLa_JMJD6KO_JQ1
+##  5:      JMJD6_substrate                    TRUE         HeLa_WT_J6pep
+##  6:      JMJD6_substrate                    TRUE           HeLa_WT_JQ1
+##  7:      JMJD6_substrate                    TRUE           MCF7_WT_JQ1
+##  8:      JMJD6_substrate                   FALSE                  <NA>
+##  9:               Others                    TRUE         HEK293_WT_JQ1
+## 10:               Others                    TRUE HeLa_JMJD6FLAG_FLAGIP
+## 11:               Others                    TRUE    HeLa_JMJD6KO_J6pep
+## 12:               Others                    TRUE      HeLa_JMJD6KO_JQ1
+## 13:               Others                    TRUE         HeLa_WT_J6pep
+## 14:               Others                    TRUE           HeLa_WT_JQ1
+## 15:               Others                    TRUE           MCF7_WT_JQ1
 ##     unique_protein_N unique_site_N
 ##  1:                4            31
-##  2:               22            65
+##  2:               38           122
 ##  3:               41            82
-##  4:               26            76
+##  4:               22            65
 ##  5:               42            84
-##  6:                6            34
-##  7:               13            41
-##  8:              242          1860
-##  9:              678          9912
-## 10:             3692         39086
-## 11:              688          9634
-## 12:             3224         30046
-## 13:              269          2458
+##  6:               26            76
+##  7:                6            34
+##  8:                3             7
+##  9:              242          1860
+## 10:             1142         10963
+## 11:             3692         39086
+## 12:              678          9912
+## 13:             3224         30046
+## 14:              688          9634
+## 15:              269          2458
 ```
 
 # Analysis of the properties of hydroxylation sites
@@ -261,7 +265,7 @@ stoichiometry.dt[, full_length_seq_flag := (
 )]
 
 left.cols <- c(
-    "cell", "Accession", "uniprot_id", "position", "sequence",
+    "data_source", "Accession", "uniprot_id", "position", "sequence",
     "full_length_seq_flag",
     "JMJD6_substrate_flag",
     "oxK_ratio"
@@ -288,37 +292,41 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ```
 ## [1] "Positions and proteins in aggregated data:"
 ##    JMJD6_substrate_flag stoichiometry_available unique_protein_N unique_site_N
-## 1:      JMJD6_substrate                    TRUE               46           122
-## 2:      JMJD6_substrate                   FALSE               13            41
-## 3:               Others                    TRUE             2486         24249
-##     JMJD6_substrate_flag stoichiometry_available           cell
-##  1:      JMJD6_substrate                    TRUE         HEK293
-##  2:      JMJD6_substrate                    TRUE      HeLa_J6KO
-##  3:      JMJD6_substrate                    TRUE HeLa_J6KO_J6PD
-##  4:      JMJD6_substrate                    TRUE        HeLa_WT
-##  5:      JMJD6_substrate                    TRUE   HeLa_WT_J6PD
-##  6:      JMJD6_substrate                    TRUE           MCF7
-##  7:      JMJD6_substrate                   FALSE           <NA>
-##  8:               Others                    TRUE         HEK293
-##  9:               Others                    TRUE      HeLa_J6KO
-## 10:               Others                    TRUE HeLa_J6KO_J6PD
-## 11:               Others                    TRUE        HeLa_WT
-## 12:               Others                    TRUE   HeLa_WT_J6PD
-## 13:               Others                    TRUE           MCF7
+## 1:      JMJD6_substrate                    TRUE               51           156
+## 2:      JMJD6_substrate                   FALSE                3             7
+## 3:               Others                    TRUE             2700         26302
+##     JMJD6_substrate_flag stoichiometry_available           data_source
+##  1:      JMJD6_substrate                    TRUE         HEK293_WT_JQ1
+##  2:      JMJD6_substrate                    TRUE HeLa_JMJD6FLAG_FLAGIP
+##  3:      JMJD6_substrate                    TRUE    HeLa_JMJD6KO_J6pep
+##  4:      JMJD6_substrate                    TRUE      HeLa_JMJD6KO_JQ1
+##  5:      JMJD6_substrate                    TRUE         HeLa_WT_J6pep
+##  6:      JMJD6_substrate                    TRUE           HeLa_WT_JQ1
+##  7:      JMJD6_substrate                    TRUE           MCF7_WT_JQ1
+##  8:      JMJD6_substrate                   FALSE                  <NA>
+##  9:               Others                    TRUE         HEK293_WT_JQ1
+## 10:               Others                    TRUE HeLa_JMJD6FLAG_FLAGIP
+## 11:               Others                    TRUE    HeLa_JMJD6KO_J6pep
+## 12:               Others                    TRUE      HeLa_JMJD6KO_JQ1
+## 13:               Others                    TRUE         HeLa_WT_J6pep
+## 14:               Others                    TRUE           HeLa_WT_JQ1
+## 15:               Others                    TRUE           MCF7_WT_JQ1
 ##     unique_protein_N unique_site_N
 ##  1:                4            31
-##  2:               22            65
+##  2:               38           122
 ##  3:               41            82
-##  4:               26            76
+##  4:               22            65
 ##  5:               42            84
-##  6:                6            34
-##  7:               13            41
-##  8:               76           657
-##  9:              406          4465
-## 10:             2230         20906
-## 11:              437          4505
-## 12:             1966         15941
-## 13:              128           942
+##  6:               26            76
+##  7:                6            34
+##  8:                3             7
+##  9:               76           657
+## 10:              907          5640
+## 11:             2230         20906
+## 12:              406          4465
+## 13:             1966         15941
+## 14:              437          4505
+## 15:              128           942
 ```
 
 # Analysis of sequence feature around hydroxylation site
@@ -329,7 +337,7 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 
 ```r
 non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    cell %in% c("HeLa_WT", "HeLa_WT_J6PD") | is.na(cell)
+    data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") | is.na(data_source)
 ][
     order(
         JMJD6_substrate_flag == "JMJD6_substrate",
@@ -347,20 +355,20 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ## [1] "Positions and proteins in aggregated data:"
 ##    JMJD6_substrate_flag stoichiometry_available unique_protein_N unique_site_N
 ## 1:      JMJD6_substrate                    TRUE               46           117
-## 2:      JMJD6_substrate                   FALSE               13            41
+## 2:      JMJD6_substrate                   FALSE                3             7
 ## 3:               Others                    TRUE             1992         16943
-##    JMJD6_substrate_flag stoichiometry_available         cell unique_protein_N
-## 1:      JMJD6_substrate                    TRUE      HeLa_WT               16
-## 2:      JMJD6_substrate                    TRUE HeLa_WT_J6PD               37
-## 3:      JMJD6_substrate                   FALSE         <NA>               13
-## 4:               Others                    TRUE      HeLa_WT              437
-## 5:               Others                    TRUE HeLa_WT_J6PD             1938
+##    JMJD6_substrate_flag stoichiometry_available   data_source unique_protein_N
+## 1:      JMJD6_substrate                    TRUE HeLa_WT_J6pep               37
+## 2:      JMJD6_substrate                    TRUE   HeLa_WT_JQ1               16
+## 3:      JMJD6_substrate                   FALSE          <NA>                3
+## 4:               Others                    TRUE HeLa_WT_J6pep             1938
+## 5:               Others                    TRUE   HeLa_WT_JQ1              437
 ##    unique_site_N
-## 1:            59
-## 2:            58
-## 3:            41
-## 4:          4334
-## 5:         12609
+## 1:            58
+## 2:            59
+## 3:             7
+## 4:         12609
+## 5:          4334
 ```
 
 ```r
@@ -371,48 +379,48 @@ non.duplicated.stoichiometry.dt[
 ```
 
 ```
-##             cell          Accession uniprot_id position              sequence
-##  1: HeLa_WT_J6PD O15042|SR140_HUMAN     O15042      981 HKDSPRDVSKKAKRSPSGSRT
-##  2:      HeLa_WT O95232|LC7L3_HUMAN     O95232      248 TEEPDRDERLKKEKQEREERE
-##  3:      HeLa_WT O95232|LC7L3_HUMAN     O95232      249 EEPDRDERLKKEKQEREEREK
-##  4:      HeLa_WT O95232|LC7L3_HUMAN     O95232      251 PDRDERLKKEKQEREEREKER
-##  5: HeLa_WT_J6PD O95232|LC7L3_HUMAN     O95232      388 EKEKRGSDDKKSSVKSGSREK
-##  6: HeLa_WT_J6PD O95232|LC7L3_HUMAN     O95232      392 RGSDDKKSSVKSGSREKQSED
-##  7: HeLa_WT_J6PD  P02545|LMNA_HUMAN     P02545      341 RDTSRRLLAEKEREMAEMRAR
-##  8:      HeLa_WT P0DMV8|HS71A_HUMAN     P0DMV8      248 VNHFVEEFKRKHKKDISQNKR
-##  9:      HeLa_WT P11142|HSP7C_HUMAN     P11142      248 VNHFIAEFKRKHKKDISENKR
-## 10:      HeLa_WT  P11387|TOP1_HUMAN     P11387       23 EADFRLNDSHKHKDKHKDREH
-## 11:      HeLa_WT  P11387|TOP1_HUMAN     P11387       40 DREHRHKEHKKEKDREKSKHS
-## 12:      HeLa_WT  P11387|TOP1_HUMAN     P11387      159 PKKIKTEDTKKEKKRKLEEEE
-## 13: HeLa_WT_J6PD Q05519|SRS11_HUMAN     Q05519      411 SKDKEKDRERKSESDKDVKQV
-## 14: HeLa_WT_J6PD  Q13428|TCOF_HUMAN     Q13428     1348 SRKGWESRKRKLSGDQPAART
-## 15: HeLa_WT_J6PD Q13435|SF3B2_HUMAN     Q13435      320 ETEEDTVSVSKKEKNRKRRNR
-## 16:      HeLa_WT Q13435|SF3B2_HUMAN     Q13435      331 KEKNRKRRNRKKKKKPQRVRG
-## 17:      HeLa_WT Q13435|SF3B2_HUMAN     Q13435      334 NRKRRNRKKKKKPQRVRGVSS
-## 18:      HeLa_WT Q13435|SF3B2_HUMAN     Q13435      335 RKRRNRKKKKKPQRVRGVSSE
-## 19:      HeLa_WT Q14498|RBM39_HUMAN     Q14498      103 GRYRSPYSGPKFNSAIRGKIG
-## 20:      HeLa_WT Q14498|RBM39_HUMAN     Q14498      119 RGKIGLPHSIKLSRRRSRSKS
-## 21:      HeLa_WT  Q15059|BRD3_HUMAN     Q15059      643 VKSCLQKKQRKPFSASGKKQA
-## 22: HeLa_WT_J6PD Q66PJ3|AR6P4_HUMAN     Q66PJ3      290 SSSDGRKKRGKYKDKRRKKKK
-## 23: HeLa_WT_J6PD Q66PJ3|AR6P4_HUMAN     Q66PJ3      294 GRKKRGKYKDKRRKKKKKRKK
-## 24:      HeLa_WT Q6NYC1|JMJD6_HUMAN     Q6NYC1      219 FPTSTPRELIKVTRDEGGNQQ
-## 25: HeLa_WT_J6PD Q6NYC1|JMJD6_HUMAN     Q6NYC1      307 VWHKTVRGRPKLSRKWYRILK
-## 26:      HeLa_WT  Q6UN15|FIP1_HUMAN     Q6UN15      564 SEEGDSHRRHKHKKSKRSKEG
-## 27: HeLa_WT_J6PD  Q8IWS0|PHF6_HUMAN     Q8IWS0      173 RKGRPRKTNFKGLSEDTRSTS
-## 28: HeLa_WT_J6PD Q8N9Q2|SR1IP_HUMAN     Q8N9Q2      142 KKEKKKRKKEKHSSTPNSSEF
-## 29: HeLa_WT_J6PD Q8WXA9|SREK1_HUMAN     Q8WXA9      400 SRSPRTSKTIKRKSSRSPSPR
-## 30: HeLa_WT_J6PD Q96SB4|SRPK1_HUMAN     Q96SB4       16 LALQARKKRTKAKKDKAQRKS
-## 31: HeLa_WT_J6PD Q96SB4|SRPK1_HUMAN     Q96SB4       18 LQARKKRTKAKKDKAQRKSET
-## 32: HeLa_WT_J6PD Q96SB4|SRPK1_HUMAN     Q96SB4       19 QARKKRTKAKKDKAQRKSETQ
-## 33:      HeLa_WT Q9BRS2|RIOK1_HUMAN     Q9BRS2      535 TDPDIDKKERKKMVKEAQREK
-## 34:      HeLa_WT Q9BRS2|RIOK1_HUMAN     Q9BRS2      539 IDKKERKKMVKEAQREKRKNK
-## 35: HeLa_WT_J6PD Q9BRS2|RIOK1_HUMAN     Q9BRS2      555 KRKNKIPKHVKKRKEKTAKTK
-## 36:      HeLa_WT  Q9BVP2|GNL3_HUMAN     Q9BVP2       20 SKRMTCHKRYKIQKKVREHHR
-## 37:      HeLa_WT  Q9BVP2|GNL3_HUMAN     Q9BVP2       23 MTCHKRYKIQKKVREHHRKLR
-## 38: HeLa_WT_J6PD Q9NQ29|LUC7L_HUMAN     Q9NQ29      323 HRRASRDRSAKYKFSRERASR
-## 39: HeLa_WT_J6PD Q9NWB6|ARGL1_HUMAN     Q9NWB6       13 RSRSRSSSRSKHTKSSKHNKK
-## 40: HeLa_WT_J6PD  Q9NYK5|RM39_HUMAN     Q9NYK5      322 IWDKLLERSRKMVTEDQSKAT
-##             cell          Accession uniprot_id position              sequence
+##       data_source          Accession uniprot_id position              sequence
+##  1: HeLa_WT_J6pep O15042|SR140_HUMAN     O15042      981 HKDSPRDVSKKAKRSPSGSRT
+##  2:   HeLa_WT_JQ1 O95232|LC7L3_HUMAN     O95232      248 TEEPDRDERLKKEKQEREERE
+##  3:   HeLa_WT_JQ1 O95232|LC7L3_HUMAN     O95232      249 EEPDRDERLKKEKQEREEREK
+##  4:   HeLa_WT_JQ1 O95232|LC7L3_HUMAN     O95232      251 PDRDERLKKEKQEREEREKER
+##  5: HeLa_WT_J6pep O95232|LC7L3_HUMAN     O95232      388 EKEKRGSDDKKSSVKSGSREK
+##  6: HeLa_WT_J6pep O95232|LC7L3_HUMAN     O95232      392 RGSDDKKSSVKSGSREKQSED
+##  7: HeLa_WT_J6pep  P02545|LMNA_HUMAN     P02545      341 RDTSRRLLAEKEREMAEMRAR
+##  8:   HeLa_WT_JQ1 P0DMV8|HS71A_HUMAN     P0DMV8      248 VNHFVEEFKRKHKKDISQNKR
+##  9:   HeLa_WT_JQ1 P11142|HSP7C_HUMAN     P11142      248 VNHFIAEFKRKHKKDISENKR
+## 10:   HeLa_WT_JQ1  P11387|TOP1_HUMAN     P11387       23 EADFRLNDSHKHKDKHKDREH
+## 11:   HeLa_WT_JQ1  P11387|TOP1_HUMAN     P11387       40 DREHRHKEHKKEKDREKSKHS
+## 12:   HeLa_WT_JQ1  P11387|TOP1_HUMAN     P11387      159 PKKIKTEDTKKEKKRKLEEEE
+## 13: HeLa_WT_J6pep Q05519|SRS11_HUMAN     Q05519      411 SKDKEKDRERKSESDKDVKQV
+## 14: HeLa_WT_J6pep  Q13428|TCOF_HUMAN     Q13428     1348 SRKGWESRKRKLSGDQPAART
+## 15: HeLa_WT_J6pep Q13435|SF3B2_HUMAN     Q13435      320 ETEEDTVSVSKKEKNRKRRNR
+## 16:   HeLa_WT_JQ1 Q13435|SF3B2_HUMAN     Q13435      331 KEKNRKRRNRKKKKKPQRVRG
+## 17:   HeLa_WT_JQ1 Q13435|SF3B2_HUMAN     Q13435      334 NRKRRNRKKKKKPQRVRGVSS
+## 18:   HeLa_WT_JQ1 Q13435|SF3B2_HUMAN     Q13435      335 RKRRNRKKKKKPQRVRGVSSE
+## 19:   HeLa_WT_JQ1 Q14498|RBM39_HUMAN     Q14498      103 GRYRSPYSGPKFNSAIRGKIG
+## 20:   HeLa_WT_JQ1 Q14498|RBM39_HUMAN     Q14498      119 RGKIGLPHSIKLSRRRSRSKS
+## 21:   HeLa_WT_JQ1  Q15059|BRD3_HUMAN     Q15059      643 VKSCLQKKQRKPFSASGKKQA
+## 22: HeLa_WT_J6pep Q66PJ3|AR6P4_HUMAN     Q66PJ3      290 SSSDGRKKRGKYKDKRRKKKK
+## 23: HeLa_WT_J6pep Q66PJ3|AR6P4_HUMAN     Q66PJ3      294 GRKKRGKYKDKRRKKKKKRKK
+## 24:   HeLa_WT_JQ1 Q6NYC1|JMJD6_HUMAN     Q6NYC1      219 FPTSTPRELIKVTRDEGGNQQ
+## 25: HeLa_WT_J6pep Q6NYC1|JMJD6_HUMAN     Q6NYC1      307 VWHKTVRGRPKLSRKWYRILK
+## 26:   HeLa_WT_JQ1  Q6UN15|FIP1_HUMAN     Q6UN15      564 SEEGDSHRRHKHKKSKRSKEG
+## 27: HeLa_WT_J6pep  Q8IWS0|PHF6_HUMAN     Q8IWS0      173 RKGRPRKTNFKGLSEDTRSTS
+## 28: HeLa_WT_J6pep Q8N9Q2|SR1IP_HUMAN     Q8N9Q2      142 KKEKKKRKKEKHSSTPNSSEF
+## 29: HeLa_WT_J6pep Q8WXA9|SREK1_HUMAN     Q8WXA9      400 SRSPRTSKTIKRKSSRSPSPR
+## 30: HeLa_WT_J6pep Q96SB4|SRPK1_HUMAN     Q96SB4       16 LALQARKKRTKAKKDKAQRKS
+## 31: HeLa_WT_J6pep Q96SB4|SRPK1_HUMAN     Q96SB4       18 LQARKKRTKAKKDKAQRKSET
+## 32: HeLa_WT_J6pep Q96SB4|SRPK1_HUMAN     Q96SB4       19 QARKKRTKAKKDKAQRKSETQ
+## 33:   HeLa_WT_JQ1 Q9BRS2|RIOK1_HUMAN     Q9BRS2      535 TDPDIDKKERKKMVKEAQREK
+## 34:   HeLa_WT_JQ1 Q9BRS2|RIOK1_HUMAN     Q9BRS2      539 IDKKERKKMVKEAQREKRKNK
+## 35: HeLa_WT_J6pep Q9BRS2|RIOK1_HUMAN     Q9BRS2      555 KRKNKIPKHVKKRKEKTAKTK
+## 36:   HeLa_WT_JQ1  Q9BVP2|GNL3_HUMAN     Q9BVP2       20 SKRMTCHKRYKIQKKVREHHR
+## 37:   HeLa_WT_JQ1  Q9BVP2|GNL3_HUMAN     Q9BVP2       23 MTCHKRYKIQKKVREHHRKLR
+## 38: HeLa_WT_J6pep Q9NQ29|LUC7L_HUMAN     Q9NQ29      323 HRRASRDRSAKYKFSRERASR
+## 39: HeLa_WT_J6pep Q9NWB6|ARGL1_HUMAN     Q9NWB6       13 RSRSRSSSRSKHTKSSKHNKK
+## 40: HeLa_WT_J6pep  Q9NYK5|RM39_HUMAN     Q9NYK5      322 IWDKLLERSRKMVTEDQSKAT
+##       data_source          Accession uniprot_id position              sequence
 ##     full_length_seq_flag JMJD6_substrate_flag oxK_ratio residue_at_curated_site
 ##  1:                 TRUE      JMJD6_substrate         0                       K
 ##  2:                 TRUE      JMJD6_substrate         0                       K
@@ -630,17 +638,17 @@ non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 ```
 
 ```
-## Empty data.table (0 rows and 27 cols): cell,Accession,uniprot_id,position,sequence,full_length_seq_flag...
+## Empty data.table (0 rows and 27 cols): data_source,Accession,uniprot_id,position,sequence,full_length_seq_flag...
 ```
 
 ```r
-non.duplicated.stoichiometry.dt[, table(cell)]
+non.duplicated.stoichiometry.dt[, table(data_source)]
 ```
 
 ```
-## cell
-##      HeLa_WT HeLa_WT_J6PD 
-##         4393        12667
+## data_source
+## HeLa_WT_J6pep   HeLa_WT_JQ1 
+##         12667          4393
 ```
 
 ```r
@@ -661,7 +669,7 @@ non.duplicated.stoichiometry.dt[
     by = seq_len(nrow(non.duplicated.stoichiometry.dt))
 ]
 
-key.id.cols <- c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
+key.id.cols <- c("data_source", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
 
 m.non.duplicated.stoichiometry.dt <- melt(
     non.duplicated.stoichiometry.dt,
@@ -790,16 +798,16 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ##    JMJD6_substrate_flag stoichiometry_available unique_protein_N unique_site_N
 ## 1:      JMJD6_substrate                    TRUE               39            93
 ## 2:               Others                    TRUE             1992         16943
-##    JMJD6_substrate_flag stoichiometry_available         cell unique_protein_N
-## 1:      JMJD6_substrate                    TRUE      HeLa_WT                9
-## 2:      JMJD6_substrate                    TRUE HeLa_WT_J6PD               32
-## 3:               Others                    TRUE      HeLa_WT              437
-## 4:               Others                    TRUE HeLa_WT_J6PD             1938
+##    JMJD6_substrate_flag stoichiometry_available   data_source unique_protein_N
+## 1:      JMJD6_substrate                    TRUE HeLa_WT_J6pep               32
+## 2:      JMJD6_substrate                    TRUE   HeLa_WT_JQ1                9
+## 3:               Others                    TRUE HeLa_WT_J6pep             1938
+## 4:               Others                    TRUE   HeLa_WT_JQ1              437
 ##    unique_site_N
-## 1:            45
-## 2:            48
-## 3:          4334
-## 4:         12609
+## 1:            48
+## 2:            45
+## 3:         12609
+## 4:          4334
 ```
 
 ```r
@@ -1035,7 +1043,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-12-10                  
+##  date     2021-12-12                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

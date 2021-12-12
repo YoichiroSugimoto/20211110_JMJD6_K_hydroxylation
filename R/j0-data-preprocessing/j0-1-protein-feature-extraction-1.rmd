@@ -94,21 +94,19 @@ temp <- mclapply(
     mc.cores = processors
 )
 
-x <- 1
-
-cur.dir <- getwd()
-setwd(normalizePath(ind.fa.dir))
-
 temp <- mclapply(
     1:length(all.protein.bs),
     function(x){
         paste(
             "python",
             file.path("/camp/lab/ratcliffep/home/users/sugimoy/CAMP_HPC/software/source_files/iupred2a/iupred2a.py"),
-            paste0(
-                str_split_fixed(
-                    names(all.protein.bs)[x], "\\|", 2
-                )[, 1], ".fa"),
+            file.path(
+                ind.fa.dir,
+                paste0(
+                    str_split_fixed(
+                        names(all.protein.bs)[x], "\\|", 2
+                    )[, 1], ".fa")
+            ),
             "long", ">",
             file.path(
                 iupred2.dir,
@@ -123,8 +121,6 @@ temp <- mclapply(
     },
     mc.cores = processors
 )
-
-setwd(cur.dir)
 
 all.iupred2.dt <- mcmapply(
     function(x, y){

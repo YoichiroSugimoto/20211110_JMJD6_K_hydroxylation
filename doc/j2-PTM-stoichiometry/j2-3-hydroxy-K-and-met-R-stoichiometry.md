@@ -1,7 +1,7 @@
 ---
 title: "j2-3 Analysis of the stoichiometry of lysine hydroxylation and arginine methylation"
 author: "Yoichiro Sugimoto"
-date: "09 December, 2021"
+date: "12 December, 2021"
 vignette: >
   %\VignetteIndexEntry{Bioconductor style for PDF documents}
   %\VignetteEngine{knitr::rmarkdown}
@@ -45,21 +45,21 @@ create.dirs(c(
 
 
 ```r
-input.names <- c(
-    "JQ1_HeLa",
-    "JQ1_J6KO",
-    "J6_HeLa",
-    "J6_J6KO"
+data.source <- c(
+    "HeLa_WT_JQ1",
+    "HeLa_JMJD6KO_JQ1",
+    "HeLa_WT_J6pep",
+    "HeLa_JMJD6KO_J6pep"
 )
 
 all.pp.dt<- lapply(
-    1:length(input.names),
+    1:length(data.source),
     function(x){
         dt <- fread(
             paste0(
                 j2.3.input.dir,
-                "/MethylR_and_HydroxK_",
-                input.names[x], ".csv"
+                "/",
+                data.source[x], "_Trypsin_oxKandMetR__protein-peptides.csv"
             )
         )
         setnames(
@@ -72,15 +72,35 @@ all.pp.dt<- lapply(
             new = c("Accession", "Area", "n_feature")
         )
         dt[, `:=`(
-            cell = input.names[x],
+            data_source = data.source[x],
             Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
         )]
-        dt[, .(cell, Accession, Start, End, Unique, Peptide, Area, PTM, n_feature)]
+        dt[, .(data_source, Accession, Start, End, Unique, Peptide, Area, PTM, n_feature)]
     }
 ) %>% rbindlist
 
-all.pp.dt[, cell := factor(cell, levels = input.names)]
+all.pp.dt[, data_source := factor(data_source, levels = data.source)]
 
+print("The number of peptides per data source")
+```
+
+```
+## [1] "The number of peptides per data source"
+```
+
+```r
+all.pp.dt[, .N, by = data_source]
+```
+
+```
+##           data_source     N
+## 1:        HeLa_WT_JQ1 24502
+## 2:   HeLa_JMJD6KO_JQ1 26774
+## 3:      HeLa_WT_J6pep 75211
+## 4: HeLa_JMJD6KO_J6pep 96360
+```
+
+```r
 all.protein.feature.per.pos.dt <- file.path(
     j0.res.dir, "all_protein_feature_per_position.csv"
 ) %>% fread
@@ -150,18 +170,18 @@ all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 ```
 
 ```
-## [1] "Input peptides per cells"
-## cell
-## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
-##    24502    26774    75211    96360 
-## [1] "Peptides per cells after filteration 1"
-## cell
-## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
-##    23020    24538    67124    85954 
-## [1] "Peptides per cells after filtration 2"
-## cell
-## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
-##    18516    19349    60023    77538 
+## [1] "Input peptides per data_sources"
+## data_source
+##        HeLa_WT_JQ1   HeLa_JMJD6KO_JQ1      HeLa_WT_J6pep HeLa_JMJD6KO_J6pep 
+##              24502              26774              75211              96360 
+## [1] "Peptides per data_sources after filteration 1"
+## data_source
+##        HeLa_WT_JQ1   HeLa_JMJD6KO_JQ1      HeLa_WT_J6pep HeLa_JMJD6KO_J6pep 
+##              23020              24538              67124              85954 
+## [1] "Peptides per data_sources after filtration 2"
+## data_source
+##        HeLa_WT_JQ1   HeLa_JMJD6KO_JQ1      HeLa_WT_J6pep HeLa_JMJD6KO_J6pep 
+##              18516              19349              60023              77538 
 ## [1] "After the filtration of acetylation (filteration 3)"
 ## [1] "All K related modifications"
 ## 
@@ -183,14 +203,14 @@ all.indexed.pp.dt <- filterPeptideData(all.pp.dt)
 ##                           93                        18729 
 ##      Oxidised Propionylation               Propionylation 
 ##                         1034                        80462 
-## [1] "Peptides per cells after filtration 4"
-## cell
-## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
-##    18015    18908    58412    75597 
-## [1] "Peptides per cells after filtration 5"
-## cell
-## JQ1_HeLa JQ1_J6KO  J6_HeLa  J6_J6KO 
-##    17074    17695    57449    74373 
+## [1] "Peptides per data_sources after filtration 4"
+## data_source
+##        HeLa_WT_JQ1   HeLa_JMJD6KO_JQ1      HeLa_WT_J6pep HeLa_JMJD6KO_J6pep 
+##              18015              18908              58412              75597 
+## [1] "Peptides per data_sources after filtration 5"
+## data_source
+##        HeLa_WT_JQ1   HeLa_JMJD6KO_JQ1      HeLa_WT_J6pep HeLa_JMJD6KO_J6pep 
+##              17074              17695              57449              74373 
 ## [1] "Filtration 5 (PTM assignment)"
 ## [1] "All K related modifications"
 ## 
@@ -233,7 +253,7 @@ all.pos.dt <- lapply(
 ```r
 k.stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("K", "oxK")],
-    formula = cell + Accession + position ~ aa_type,
+    formula = data_source + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
@@ -262,7 +282,7 @@ k.stoic.dt[
 ]
 
 ## print("Before filtration 7")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
 
 ## MW filter
 k.stoic.dt[, `:=`(
@@ -289,10 +309,10 @@ k.stoic.dt[, `:=`(
 ## )]
 
 ## print("After filtration 7")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
 
 ## print("After filtration 7 (5% hydroxylation)")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
+## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, data_source)]
 
 merge(
     all.protein.feature.per.pos.dt,
@@ -303,7 +323,7 @@ merge(
 
 wide.k.stoic.dt <- dcast(
     k.stoic.dt,
-    formula = Accession + position + seq5 + MW_within_1 + MW_within_2 ~ cell,
+    formula = Accession + position + seq5 + MW_within_1 + MW_within_2 ~ data_source,
     value.var = c(
         "oxK_ratio",
         grep("^total_area", colnames(k.stoic.dt), value = TRUE),
@@ -327,7 +347,7 @@ merge(
 ```r
 stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("R", "mR", "dmR")],
-    formula = cell + Accession + position ~ aa_type,
+    formula = data_source + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
@@ -354,7 +374,7 @@ merge(
 
 wide.stoic.dt <- dcast(
     stoic.dt,
-    formula = Accession + position + seq5 ~ cell,
+    formula = Accession + position + seq5 ~ data_source,
     value.var = c(
         "mR_ratio", "dmR_ratio",
         grep("^total_area", colnames(stoic.dt), value = TRUE),
@@ -392,7 +412,7 @@ sessioninfo::session_info()
 ##  collate  en_GB.UTF-8                 
 ##  ctype    en_GB.UTF-8                 
 ##  tz       Europe/London               
-##  date     2021-12-09                  
+##  date     2021-12-12                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────
 ##  package              * version  date       lib source        

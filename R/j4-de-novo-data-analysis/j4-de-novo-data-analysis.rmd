@@ -61,7 +61,7 @@ all.dt[
 ]
 
 all.dt[, `:=`(
-    cell = paste0(PD, "_", JMJD6),
+    data_source = paste0(PD, "_", JMJD6),
     Unique = "Y",
     Area = 100,
     PTM = "Oxidation (K); Oxidised Propionylation", # keep all KOH
@@ -326,19 +326,19 @@ fwrite(
 
 ## For QC
 all.score.dt[, c(
-    "cell", "max_oxK_score",
+    "data_source", "max_oxK_score",
     "K_count_capped", "Peptide", "Denovo Score", "local confidence (%)"
 ), with = FALSE][
     K_count_capped == "5+"
-][grepl("WT$", cell)] %>%
+][grepl("WT$", data_source)] %>%
     fwrite(file = file.path(j4.res.dir, "K_score_5or6_WT.csv"))
 
 all.score.dt[, c(
-    "cell", "max_oxK_score",
+    "data_source", "max_oxK_score",
     "K_count_capped", "Peptide", "Denovo Score", "local confidence (%)"
 ), with = FALSE][
     K_count_capped == "5+"
-][grepl("JMJD6KO$", cell)] %>%
+][grepl("JMJD6KO$", data_source)] %>%
     fwrite(file = file.path(j4.res.dir, "K_score_5or6_JMJD6KO.csv"))
 
 

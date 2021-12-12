@@ -111,7 +111,7 @@ area.pp.dt <- melt(
     measure.vars = paste0("Area__", new.data.colnames),
     value.name = "Area"
 ) %>%
-    {.[, cell := str_split_fixed(variable, "__", n = 2)[, 2]]}
+    {.[, data_source := str_split_fixed(variable, "__", n = 2)[, 2]]}
 
 n.feature.pp.dt <- melt(
     pp.dt,
@@ -119,13 +119,13 @@ n.feature.pp.dt <- melt(
     measure.vars = paste0("n_feature__", new.data.colnames),
     value.name = "n_feature"
 ) %>%
-    {.[, cell := str_split_fixed(variable, "__", n = 2)[, 2]]}
+    {.[, data_source := str_split_fixed(variable, "__", n = 2)[, 2]]}
 
 
 all.pp.dt <- merge(
     area.pp.dt,
     n.feature.pp.dt,
-    by = c("Accession", "Peptide", "Start", "End", "cell")
+    by = c("Accession", "Peptide", "Start", "End", "data_source")
 )
 
 all.pp.dt <- all.pp.dt[
@@ -204,7 +204,7 @@ all.pos.dt <- lapply(
 
 stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("K", "oxK")],
-    formula = cell + Accession + position ~ aa_type,
+    formula = data_source + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
@@ -216,7 +216,7 @@ stoic.dt[, `:=`(
 
 wide.dt <- dcast(
     stoic.dt,
-    Accession + position ~ cell,
+    Accession + position ~ data_source,
     value.var = c("ox_ratio", "total_n_feature_K", "total_n_feature_oxK")
 )
 

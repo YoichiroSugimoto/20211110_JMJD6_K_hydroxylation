@@ -28,13 +28,13 @@ filterPeptideData <- function(all.pp.dt){
 
     all.dt <- copy(all.pp.dt)
 
-    print("Input peptides per cells")
-    print(all.dt[, table(cell)])
+    print("Input peptides per data_sources")
+    print(all.dt[, table(data_source)])
 
     ## F1.
     all.dt <- all.dt[Unique == "Y"]
-    print("Peptides per cells after filteration 1")
-    print(all.dt[, table(cell)])    
+    print("Peptides per data_sources after filteration 1")
+    print(all.dt[, table(data_source)])    
 
     ## F2
     all.dt <- all.dt[
@@ -42,8 +42,8 @@ filterPeptideData <- function(all.pp.dt){
         Accession %in% all.protein.feature.per.pos.dt[, unique(Accession)]
     ]
 
-    print("Peptides per cells after filtration 2")
-    print(all.dt[, table(cell)])
+    print("Peptides per data_sources after filtration 2")
+    print(all.dt[, table(data_source)])
 
     ## F3. Remove Acetylation from modification
     all.dt[, corrected_peptide := gsub("\\(\\+42\\.01\\)", "", Peptide)]
@@ -63,8 +63,8 @@ filterPeptideData <- function(all.pp.dt){
     )
     ]
 
-    print("Peptides per cells after filtration 4")
-    print(all.dt[, table(cell)])
+    print("Peptides per data_sources after filtration 4")
+    print(all.dt[, table(data_source)])
 
     ## F5.
     ##  Allow only 1 misclevage by trypsin 
@@ -93,8 +93,8 @@ filterPeptideData <- function(all.pp.dt){
     all.dt <- all.dt[str_count(Peptide_for_filtration, "(K|R)") < 2]
     all.dt[, Peptide_for_filtration := NULL]
 
-    print("Peptides per cells after filtration 5")
-    print(all.dt[, table(cell)])
+    print("Peptides per data_sources after filtration 5")
+    print(all.dt[, table(data_source)])
 
     all.dt[, PTMs := str_split(PTM, "; ")]
 
@@ -193,7 +193,7 @@ indexToPosition <- function(index.name, dt){
             aa_type = index.name
         )]
         e.dt <- e.dt[, c(
-            "cell", "Accession", "aa_type", "position", "Area", "n_feature"
+            "data_source", "Accession", "aa_type", "position", "Area", "n_feature"
         ), with = FALSE]
 
         pos.dt <- e.dt[, list(
@@ -201,7 +201,7 @@ indexToPosition <- function(index.name, dt){
             total_area = sum(Area),
             total_n_feature = sum(n_feature)
         ), by = list(
-               cell, 
+               data_source, 
                Accession, aa_type, position
            )]
     } else {

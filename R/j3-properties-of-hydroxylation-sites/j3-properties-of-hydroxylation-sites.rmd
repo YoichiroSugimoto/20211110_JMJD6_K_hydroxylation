@@ -118,7 +118,7 @@ manually.curated.hydroxylation.dt[, list(
 
 ```{r stoichiometry data}
 
-## cells <- c(
+## data_sources <- c(
 ##     "HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD"
 ## )
 
@@ -170,9 +170,9 @@ reportOxKSiteStats <- function(stoichiometry.dt){
     by = list(
         JMJD6_substrate_flag,
         stoichiometry_available,
-        cell
+        data_source
     )
-    ][order(JMJD6_substrate_flag, cell)] %>%
+    ][order(JMJD6_substrate_flag, data_source)] %>%
         print
 
     return()
@@ -210,7 +210,7 @@ stoichiometry.dt[, full_length_seq_flag := (
 )]
 
 left.cols <- c(
-    "cell", "Accession", "uniprot_id", "position", "sequence",
+    "data_source", "Accession", "uniprot_id", "position", "sequence",
     "full_length_seq_flag",
     "JMJD6_substrate_flag",
     "oxK_ratio"
@@ -243,7 +243,7 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ```{r amino acid enrichment, fig.width = 7}
 
 non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    cell %in% c("HeLa_WT", "HeLa_WT_J6PD") | is.na(cell)
+    data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") | is.na(data_source)
 ][
     order(
         JMJD6_substrate_flag == "JMJD6_substrate",
@@ -261,7 +261,7 @@ non.duplicated.stoichiometry.dt[
     JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
 ]
 non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
-non.duplicated.stoichiometry.dt[, table(cell)]
+non.duplicated.stoichiometry.dt[, table(data_source)]
 non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
 ## Back to analysis
@@ -271,7 +271,7 @@ non.duplicated.stoichiometry.dt[
     by = seq_len(nrow(non.duplicated.stoichiometry.dt))
 ]
 
-key.id.cols <- c("cell", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
+key.id.cols <- c("data_source", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
 
 m.non.duplicated.stoichiometry.dt <- melt(
     non.duplicated.stoichiometry.dt,

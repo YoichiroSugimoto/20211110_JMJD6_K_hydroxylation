@@ -17,7 +17,6 @@ cd /camp/home/sugimoy/home/CAMP_HPC/projects/20211110_JMJD6_K_hydroxylation/R/j2
 Rscript ../run_rmd.R j2-1-hydroxy-K-stoichiometry.rmd
 Rscript ../run_rmd.R j2-2-hydroxy-K-stoichiometry-with-AspN.rmd
 Rscript ../run_rmd.R j2-3-hydroxy-K-and-met-R-stoichiometry.rmd
-Rscript ../run_rmd.R j2-4-significance-of-K-hydroxylation.rmd
 
 ## Template for sbatch
 ## Rscript ../run_rmd.R xx.rmd

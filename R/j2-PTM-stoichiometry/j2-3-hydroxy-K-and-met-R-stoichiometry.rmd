@@ -46,21 +46,21 @@ create.dirs(c(
 
 ```{r fasta data}
 
-input.names <- c(
-    "JQ1_HeLa",
-    "JQ1_J6KO",
-    "J6_HeLa",
-    "J6_J6KO"
+data.source <- c(
+    "HeLa_WT_JQ1",
+    "HeLa_JMJD6KO_JQ1",
+    "HeLa_WT_J6pep",
+    "HeLa_JMJD6KO_J6pep"
 )
 
 all.pp.dt<- lapply(
-    1:length(input.names),
+    1:length(data.source),
     function(x){
         dt <- fread(
             paste0(
                 j2.3.input.dir,
-                "/MethylR_and_HydroxK_",
-                input.names[x], ".csv"
+                "/",
+                data.source[x], "_Trypsin_oxKandMetR__protein-peptides.csv"
             )
         )
         setnames(
@@ -73,14 +73,17 @@ all.pp.dt<- lapply(
             new = c("Accession", "Area", "n_feature")
         )
         dt[, `:=`(
-            cell = input.names[x],
+            data_source = data.source[x],
             Peptide = gsub("(^[[:alpha:]]\\.|\\.[[:alpha:]]$)", "", Peptide)
         )]
-        dt[, .(cell, Accession, Start, End, Unique, Peptide, Area, PTM, n_feature)]
+        dt[, .(data_source, Accession, Start, End, Unique, Peptide, Area, PTM, n_feature)]
     }
 ) %>% rbindlist
 
-all.pp.dt[, cell := factor(cell, levels = input.names)]
+all.pp.dt[, data_source := factor(data_source, levels = data.source)]
+
+print("The number of peptides per data source")
+all.pp.dt[, .N, by = data_source]
 
 all.protein.feature.per.pos.dt <- file.path(
     j0.res.dir, "all_protein_feature_per_position.csv"
@@ -141,7 +144,7 @@ all.pos.dt <- lapply(
 
 k.stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("K", "oxK")],
-    formula = cell + Accession + position ~ aa_type,
+    formula = data_source + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
@@ -170,7 +173,7 @@ k.stoic.dt[
 ]
 
 ## print("Before filtration 7")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
 
 ## MW filter
 k.stoic.dt[, `:=`(
@@ -197,10 +200,10 @@ k.stoic.dt[, `:=`(
 ## )]
 
 ## print("After filtration 7")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, cell)]
+## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
 
 ## print("After filtration 7 (5% hydroxylation)")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, cell)]
+## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, data_source)]
 
 merge(
     all.protein.feature.per.pos.dt,
@@ -211,7 +214,7 @@ merge(
 
 wide.k.stoic.dt <- dcast(
     k.stoic.dt,
-    formula = Accession + position + seq5 + MW_within_1 + MW_within_2 ~ cell,
+    formula = Accession + position + seq5 + MW_within_1 + MW_within_2 ~ data_source,
     value.var = c(
         "oxK_ratio",
         grep("^total_area", colnames(k.stoic.dt), value = TRUE),
@@ -236,7 +239,7 @@ merge(
 
 stoic.dt <- dcast(
     all.pos.dt[aa_type %in% c("R", "mR", "dmR")],
-    formula = cell + Accession + position ~ aa_type,
+    formula = data_source + Accession + position ~ aa_type,
     value.var = c("total_area", "total_n_feature"),
     fill = 0
 )
@@ -263,7 +266,7 @@ merge(
 
 wide.stoic.dt <- dcast(
     stoic.dt,
-    formula = Accession + position + seq5 ~ cell,
+    formula = Accession + position + seq5 ~ data_source,
     value.var = c(
         "mR_ratio", "dmR_ratio",
         grep("^total_area", colnames(stoic.dt), value = TRUE),

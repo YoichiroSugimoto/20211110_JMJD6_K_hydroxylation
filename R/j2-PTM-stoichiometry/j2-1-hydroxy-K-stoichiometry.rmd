@@ -26,7 +26,8 @@ library("Biostrings")
 
 processors <- 8
 
-j2.1.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-stoichiometry")
+j2.input.dir <- file.path("../../data/j2-PTM-stoichiometry")
+j2.1.input.dir <- file.path(j2.input.dir, "hydroxyK-stoichiometry")
 
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
@@ -114,7 +115,7 @@ The following filtration and data processing will be performed:
 5. Allow only 1 misclevage by trypsin 
    - At most one occurrence of K, K(+15.99), R, R(+14.02) in the peptide
    - Note that the following are allowed in the peptides
-	 - C terminal K, R, KP, RP
+	 - C terminal K and R, KP and RP
 	 - Propionylated K: K(+56.03), K(+72.02)
 	 - Dimethyl R: R(+28.03)
 6. The PTMs are assigned in the PTM column
@@ -189,23 +190,32 @@ stoic.dt[, `:=`(
         str_count(pattern = "(M|W)") > 0    
 ), by = seq_len(nrow(stoic.dt))]
 
-## print("Before filtration 7")
-## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
+## Import curated data
+curated.hydroxK.site.dt <- fread(
+    file.path(j2.input.dir, "curated_JMJD6_substrate_sites.csv") 
+)
 
-## stoic.dt[, `:=`(
-##     oxK_ratio = case_when(
-##         MW_within_1 == TRUE ~ 0,
-##         MW_within_2 == TRUE ~ 0,
-##         TRUE ~ oxK_ratio
-##     )
-## )]
+curated.hydroxK.site.dt[, `:=`(
+    curated_oxK_site = TRUE
+)]
 
-## print("After filtration 7")
-## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
+curated.hydroxK.site.dt <- curated.hydroxK.site.dt[, .(
+    Accession, position, curated_oxK_site, screen
+)]
 
-## print("After filtration 7 (5% hydroxylation)")
-## stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, data_source)]
+all.protein.feature.per.pos.dt <- merge(
+    curated.hydroxK.site.dt,
+    all.protein.feature.per.pos.dt,
+    all.y = TRUE,
+    by = c("Accession", "position")
+)
 
+all.protein.feature.per.pos.dt[, `:=`(
+    curated_oxK_site = case_when(
+        is.na(curated_oxK_site) ~ FALSE,
+        TRUE ~ curated_oxK_site
+    )
+)]
 
 merge(
     all.protein.feature.per.pos.dt,

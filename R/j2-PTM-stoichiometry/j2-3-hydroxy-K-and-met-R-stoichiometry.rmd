@@ -26,7 +26,8 @@ library("Biostrings")
 
 processors <- 8
 
-j2.3.input.dir <- file.path("../../data/j2-PTM-stoichiometry/hydroxyK-methylR-stoichiometry")
+j2.input.dir <- file.path("../../data/j2-PTM-stoichiometry")
+j2.1.input.dir <- file.path(j2.input.dir, "hydroxyK-stoichiometry")
 
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
@@ -191,19 +192,32 @@ k.stoic.dt[, `:=`(
         str_count(pattern = "(M|W)") > 0    
 ), by = seq_len(nrow(k.stoic.dt))]
 
-## k.stoic.dt[, `:=`(
-##     oxK_ratio = case_when(
-##         MW_within_1 == TRUE ~ 0,
-##         MW_within_2 == TRUE ~ 0,
-##         TRUE ~ oxK_ratio
-##     )
-## )]
+## Import curated data
+curated.hydroxK.site.dt <- fread(
+    file.path(j2.input.dir, "curated_JMJD6_substrate_sites.csv") 
+)
 
-## print("After filtration 7")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0, data_source)]
+curated.hydroxK.site.dt[, `:=`(
+    curated_oxK_site = TRUE
+)]
 
-## print("After filtration 7 (5% hydroxylation)")
-## k.stoic.dt[, table(Hydroxy_K = oxK_ratio > 0.05, data_source)]
+curated.hydroxK.site.dt <- curated.hydroxK.site.dt[, .(
+    Accession, position, curated_oxK_site, screen
+)]
+
+all.protein.feature.per.pos.dt <- merge(
+    curated.hydroxK.site.dt,
+    all.protein.feature.per.pos.dt,
+    all.y = TRUE,
+    by = c("Accession", "position")
+)
+
+all.protein.feature.per.pos.dt[, `:=`(
+    curated_oxK_site = case_when(
+        is.na(curated_oxK_site) ~ FALSE,
+        TRUE ~ curated_oxK_site
+    )
+)]
 
 merge(
     all.protein.feature.per.pos.dt,

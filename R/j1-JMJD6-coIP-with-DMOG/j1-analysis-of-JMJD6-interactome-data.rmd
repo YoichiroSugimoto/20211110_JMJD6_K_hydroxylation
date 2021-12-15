@@ -381,3 +381,12 @@ merge(
     )
 
 ```
+
+# Session information
+
+
+```{r session info}
+
+sessioninfo::session_info()
+
+```

@@ -72,55 +72,9 @@ all.protein.feature.per.pos.dt <- file.path(
 ```
 
 
-## Manually curated JMJD6 hydroxylation sites
-
-
-```{r manually curated hydroxylation sites}
-
-manually.curated.hydroxylation.dt <-
-    file.path(
-        j3.input.dir,
-        "20210721_JMJD6_manually_curated_hydroxylation_site.xlsx"
-    ) %>%
-    read_excel %>%
-    data.table
-
-manually.curated.hydroxylation.dt <-
-    manually.curated.hydroxylation.dt[, .(Accession, position)]
-
-manually.curated.hydroxylation.dt[, `:=`(
-    residue_at_curated_site =
-        BSgenome::getSeq(
-                      x = all.protein.bs,
-                      name = Accession
-                  ) %>% as.character %>%
-        {substr(
-            .,
-            start = position,
-            stop = position
-        )},
-    JMJD6_substrate_flag = "JMJD6_substrate"
-)]
-
-## Sanity check
-manually.curated.hydroxylation.dt[, table(residue_at_curated_site)]
-
-print("Positions and proteins in manually curated data:")
-manually.curated.hydroxylation.dt[, list(
-    unique_protein_N = uniqueN(Accession),
-    unique_site_N = uniqueN(paste0(Accession, "_", position))
-)]
-
-```
-
 ## Stoichiometry data
 
-
-```{r stoichiometry data}
-
-## data_sources <- c(
-##     "HeLa_WT", "HeLa_J6KO", "HEK293", "MCF7", "HeLa_WT_J6PD", "HeLa_J6KO_J6PD"
-## )
+```{r stoichiometry data, fig.width = 10, fig.height = 5}
 
 stoichiometry.dt <- fread(
     file.path(
@@ -129,26 +83,52 @@ stoichiometry.dt <- fread(
     )
 )
 
-stoichiometry.dt[, stoichiometry_available := TRUE]
-
-stoichiometry.dt <- merge(
-    manually.curated.hydroxylation.dt,
-    stoichiometry.dt,
-    all = TRUE,
-    by = c("Accession", "position")
-)
+stoichiometry.dt[
+  , curated_oxK_site := case_when(
+        curated_oxK_site == TRUE ~ "JMJD6_substrate",
+        TRUE ~ "Others"
+    )
+]
 
 stoichiometry.dt[, `:=`(
     stoichiometry_available = case_when(
-        is.na(stoichiometry_available) ~ FALSE,
+        is.na(oxK_ratio) ~ FALSE,
         TRUE ~ TRUE
-    ),
-    JMJD6_substrate_flag = case_when(
-        is.na(JMJD6_substrate_flag) ~ "Others",
-        TRUE ~ JMJD6_substrate_flag
     ),
     Accession_position = paste(Accession, position, sep = "_")
 )]
+
+## Sanity check
+j6pep.substrate.dt <- stoichiometry.dt[
+    stoichiometry_available == TRUE &
+    curated_oxK_site == "JMJD6_substrate" &
+    data_source == "HeLa_WT_J6pep" &
+    total_n_feature_K > 1 &
+    grepl("J6pep", screen),
+    .(Accession, screen, position, total_n_feature_K, oxK_ratio)
+][order(oxK_ratio, decreasing = TRUE)]
+
+j6pep.substrate.dt[
+  , accession_position := str_split_fixed(Accession, "\\|", n = 2)[, 2] %>%
+        {gsub("_HUMAN", "", .)} %>%
+        {paste0(., " (", position, ")")} %>%
+        {factor(., levels = .)}
+]
+
+ggplot(
+    data = j6pep.substrate.dt,
+    aes(
+        x = accession_position,
+        y = oxK_ratio * 100
+    )
+) +
+    geom_bar(stat = "identity") +
+    coord_cartesian(ylim = c(0, 100)) +
+    theme(
+        axis.title.x = element_blank()
+    ) +
+    scale_x_discrete(guide = guide_axis(angle = 90)) +
+    ylab("Stoichiometry [%]")
 
 reportOxKSiteStats <- function(stoichiometry.dt){
     print("Positions and proteins in aggregated data:")
@@ -157,10 +137,10 @@ reportOxKSiteStats <- function(stoichiometry.dt){
         unique_site_N = uniqueN(Accession_position)
     ),
     by = list(
-        JMJD6_substrate_flag,
+        curated_oxK_site,
         stoichiometry_available
     )
-    ][order(JMJD6_substrate_flag, -stoichiometry_available)] %>%
+    ][order(curated_oxK_site, -stoichiometry_available)] %>%
         print
 
     stoichiometry.dt[, list(
@@ -168,17 +148,22 @@ reportOxKSiteStats <- function(stoichiometry.dt){
         unique_site_N = uniqueN(Accession_position)
     ),
     by = list(
-        JMJD6_substrate_flag,
+        curated_oxK_site,
         stoichiometry_available,
         data_source
     )
-    ][order(JMJD6_substrate_flag, data_source)] %>%
+    ][order(curated_oxK_site, data_source)] %>%
         print
 
     return()
 }
 
 temp <- reportOxKSiteStats(stoichiometry.dt)
+
+stoichiometry.dt[
+    curated_oxK_site == TRUE & stoichiometry_available == FALSE,
+    .(Accession, position, curated_oxK_site, screen)
+]
 
 ```
 
@@ -212,7 +197,7 @@ stoichiometry.dt[, full_length_seq_flag := (
 left.cols <- c(
     "data_source", "Accession", "uniprot_id", "position", "sequence",
     "full_length_seq_flag",
-    "JMJD6_substrate_flag",
+    "curated_oxK_site",
     "oxK_ratio"
 )
 
@@ -223,7 +208,7 @@ stoichiometry.dt <- stoichiometry.dt[, c(
 ## Additional data filteration by the number of feature, and the availability of full length sequence
 
 stoichiometry.dt <- stoichiometry.dt[
-    JMJD6_substrate_flag == "JMJD6_substrate" |
+    curated_oxK_site == "JMJD6_substrate" |
     (
         residue == "K" &
         full_length_seq_flag == TRUE &
@@ -246,7 +231,7 @@ non.duplicated.stoichiometry.dt <- stoichiometry.dt[
     data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") | is.na(data_source)
 ][
     order(
-        JMJD6_substrate_flag == "JMJD6_substrate",
+        curated_oxK_site == "JMJD6_substrate",
         oxK_ratio,
         decreasing = TRUE
     )
@@ -258,7 +243,7 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 ## Sanity checks
 non.duplicated.stoichiometry.dt[
-    JMJD6_substrate_flag == "JMJD6_substrate" & oxK_ratio == 0
+    curated_oxK_site == "JMJD6_substrate" & oxK_ratio == 0
 ]
 non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 non.duplicated.stoichiometry.dt[, table(data_source)]
@@ -271,7 +256,7 @@ non.duplicated.stoichiometry.dt[
     by = seq_len(nrow(non.duplicated.stoichiometry.dt))
 ]
 
-key.id.cols <- c("data_source", "Accession", "position", "JMJD6_substrate_flag", "oxK_ratio")
+key.id.cols <- c("data_source", "Accession", "position", "curated_oxK_site", "oxK_ratio")
 
 m.non.duplicated.stoichiometry.dt <- melt(
     non.duplicated.stoichiometry.dt,
@@ -282,12 +267,12 @@ m.non.duplicated.stoichiometry.dt <- melt(
 )
 
 aa.count.per.pos.dt <- m.non.duplicated.stoichiometry.dt[
-  , .N, by = list(JMJD6_substrate_flag, position2KOH, amino_acid)
+  , .N, by = list(curated_oxK_site, position2KOH, amino_acid)
 ]
 
 aa.count.per.pos.dt[
   , total_AA_per_pos := sum(N),
-    by = list(JMJD6_substrate_flag, position2KOH)
+    by = list(curated_oxK_site, position2KOH)
 ]
 
 aa.count.per.pos.dt[
@@ -296,7 +281,7 @@ aa.count.per.pos.dt[
 
 odds.ratio.dt <- dcast(
     aa.count.per.pos.dt,
-    position2KOH + amino_acid ~ JMJD6_substrate_flag,
+    position2KOH + amino_acid ~ curated_oxK_site,
     value.var = c("odds", "N", "total_AA_per_pos")
 )
 
@@ -386,24 +371,24 @@ data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 non.duplicated.stoichiometry.dt[
-    JMJD6_substrate_flag == "JMJD6_substrate"
+    curated_oxK_site == "JMJD6_substrate"
 ][order(windowCharge)][, .(
      Accession, position, Window, windowCharge, IUPRED2
  )]
 
 ggplot(
-    data = non.duplicated.stoichiometry.dt[order(JMJD6_substrate_flag != "Others")],
+    data = non.duplicated.stoichiometry.dt[order(curated_oxK_site != "Others")],
     aes(
         x = windowCharge,
         y = IUPRED2,
         size = ifelse(
-            JMJD6_substrate_flag == "JMJD6_substrate",
+            curated_oxK_site == "JMJD6_substrate",
             oxK_ratio + 0.01,
             0.01
         ),
-        fill = JMJD6_substrate_flag,
-        alpha = JMJD6_substrate_flag,
-        shape = JMJD6_substrate_flag
+        fill = curated_oxK_site,
+        alpha = curated_oxK_site,
+        shape = curated_oxK_site
     )
 ) +
     geom_jitter(width = 0.04, height = 0) +
@@ -438,55 +423,6 @@ ggplot(
                            "FALSE" = "gray60"
                        ), name = "BRDs") +
     xlab("Local charge") +
-    ylab("Disordedness") +
-    ggtitle("Biophysical propety around K")
-
-
-ggplot(
-    data = non.duplicated.stoichiometry.dt[order(JMJD6_substrate_flag != "Others")],
-    aes(
-        x = K_ratio_score,,
-        y = IUPRED2,
-        size = ifelse(
-            JMJD6_substrate_flag == "JMJD6_substrate",
-            oxK_ratio + 0.01,
-            0.01
-        ),
-        fill = JMJD6_substrate_flag,
-        alpha = JMJD6_substrate_flag,
-        shape = JMJD6_substrate_flag
-    )
-) +
-    geom_jitter(width = 0.04, height = 0) +
-    theme(
-        aspect.ratio = 1,
-        legend.position = "bottom",
-        legend.direction = "vertical"
-    ) +
-    scale_size_continuous(name = "Hydroxylation rate [%]") +
-    scale_alpha_manual(
-        values = c(
-            "JMJD6_substrate" = 1,
-            "Others" = 0.075
-        ),
-        name = "JMJD6 substrate"
-    ) +
-    scale_shape_manual(
-        values = c(
-            "JMJD6_substrate" = "circle filled",
-            "Others" = "circle small"
-        ),
-        name = "JMJD6 substrate"
-    ) +
-    scale_fill_manual(values = c(
-                          "JMJD6_substrate" = "#EE6677",
-                          "Others" = "gray60"
-                      ), name = "JMJD6 substrate") +
-    scale_color_manual(values = c(
-                           "TRUE" = "black",
-                           "FALSE" = "gray60"
-                       ), name = "BRDs") +
-    xlab("K-score") +
     ylab("Disordedness") +
     ggtitle("Biophysical propety around K")
 

@@ -217,10 +217,24 @@ all.protein.feature.per.pos.dt[, `:=`(
     )
 )]
 
+stoic.target.dt <- rbind(
+    all.protein.feature.per.pos.dt[curated_oxK_site == TRUE,
+                                   .(Accession, position)],
+    stoic.dt[, .(Accession, position)]
+) %>%
+    {.[!duplicated(paste(Accession, position))]}
+
+all.protein.feature.per.pos.dt <- merge(
+    stoic.target.dt,
+    all.protein.feature.per.pos.dt,
+    by = c("Accession", "position")
+)
+
 merge(
     all.protein.feature.per.pos.dt,
     stoic.dt,
-    by = c("Accession", "position")
+    by = c("Accession", "position"),
+    all = TRUE
 ) %>%
     fwrite(file.path(j2.1.res.dir, "long_K_stoichiometry_data.csv"))
 
@@ -237,7 +251,8 @@ wide.stoic.dt <- dcast(
 merge(
     all.protein.feature.per.pos.dt,
     wide.stoic.dt,
-    by = c("Accession", "position")
+    by = c("Accession", "position"),
+    all = TRUE
 ) %>%
     fwrite(
         file.path(j2.1.res.dir, "wide_K_stoichiometry_data.csv")

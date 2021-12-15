@@ -48,7 +48,6 @@ doc/**/*_files
 
 ## Figures
 *.pdf
-*.png
 *.ai
 *.eps
 *.jpeg

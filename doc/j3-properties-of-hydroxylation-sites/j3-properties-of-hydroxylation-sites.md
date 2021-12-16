@@ -132,7 +132,18 @@ ggplot(
 
 ```r
 reportOxKSiteStats <- function(stoichiometry.dt){
-    print("Positions and proteins in aggregated data:")
+    print("Total unique JMJD6 substrate proteins and sites:")
+    stoichiometry.dt[, list(
+        unique_protein_N = uniqueN(Accession),
+        unique_site_N = uniqueN(Accession_position)
+    ),
+    by = list(
+        curated_oxK_site
+    )
+    ][order(curated_oxK_site)] %>%
+        print
+
+    print("by the availability of stocihiometry data")
     stoichiometry.dt[, list(
         unique_protein_N = uniqueN(Accession),
         unique_site_N = uniqueN(Accession_position)
@@ -144,6 +155,7 @@ reportOxKSiteStats <- function(stoichiometry.dt){
     ][order(curated_oxK_site, -stoichiometry_available)] %>%
         print
 
+    print("by the data source")
     stoichiometry.dt[, list(
         unique_protein_N = uniqueN(Accession),
         unique_site_N = uniqueN(Accession_position)
@@ -163,11 +175,16 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ```
 
 ```
-## [1] "Positions and proteins in aggregated data:"
+## [1] "Total unique JMJD6 substrate proteins and sites:"
+##    curated_oxK_site unique_protein_N unique_site_N
+## 1:  JMJD6_substrate               54           163
+## 2:           Others             4172         49498
+## [1] "by the availability of stocihiometry data"
 ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
 ## 1:  JMJD6_substrate                    TRUE               52           157
 ## 2:  JMJD6_substrate                   FALSE                2             6
 ## 3:           Others                    TRUE             4172         49498
+## [1] "by the data source"
 ##     curated_oxK_site stoichiometry_available           data_source
 ##  1:  JMJD6_substrate                   FALSE                      
 ##  2:  JMJD6_substrate                    TRUE         HEK293_WT_JQ1
@@ -204,13 +221,19 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 
 ```r
 stoichiometry.dt[
-    curated_oxK_site == TRUE & stoichiometry_available == FALSE,
+    curated_oxK_site == "JMJD6_substrate" & stoichiometry_available == FALSE,
     .(Accession, position, curated_oxK_site, screen)
 ]
 ```
 
 ```
-## Empty data.table (0 rows and 4 cols): Accession,position,curated_oxK_site,screen
+##             Accession position curated_oxK_site    screen
+## 1:  Q14331|FRG1_HUMAN       27  JMJD6_substrate FLAGJMJD6
+## 2:  Q14331|FRG1_HUMAN       29  JMJD6_substrate FLAGJMJD6
+## 3:  Q14331|FRG1_HUMAN       30  JMJD6_substrate FLAGJMJD6
+## 4: Q9UQ35|SRRM2_HUMAN      241  JMJD6_substrate FLAGJMJD6
+## 5: Q9UQ35|SRRM2_HUMAN      243  JMJD6_substrate FLAGJMJD6
+## 6: Q9UQ35|SRRM2_HUMAN      244  JMJD6_substrate FLAGJMJD6
 ```
 
 # Analysis of the properties of hydroxylation sites
@@ -266,11 +289,16 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ```
 
 ```
-## [1] "Positions and proteins in aggregated data:"
+## [1] "Total unique JMJD6 substrate proteins and sites:"
+##    curated_oxK_site unique_protein_N unique_site_N
+## 1:  JMJD6_substrate               54           163
+## 2:           Others             2700         26301
+## [1] "by the availability of stocihiometry data"
 ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
 ## 1:  JMJD6_substrate                    TRUE               52           157
 ## 2:  JMJD6_substrate                   FALSE                2             6
 ## 3:           Others                    TRUE             2700         26301
+## [1] "by the data source"
 ##     curated_oxK_site stoichiometry_available           data_source
 ##  1:  JMJD6_substrate                   FALSE                      
 ##  2:  JMJD6_substrate                    TRUE         HEK293_WT_JQ1
@@ -312,301 +340,99 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 
 
 ```r
-non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") | is.na(data_source)
-][
+print("the following sites were excluded from the analysis:")
+```
+
+```
+## [1] "the following sites were excluded from the analysis:"
+```
+
+```r
+stoichiometry.dt[
+    (data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep")) |
+    (curated_oxK_site == "JMJD6_substrate")
+][CenterResidue != "K"][
     order(
+        data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep"),
         curated_oxK_site == "JMJD6_substrate",
         oxK_ratio,
         decreasing = TRUE
     )
 ][
-    !duplicated(paste(Accession, position))
+    !duplicated(paste(Accession_position))
+]
+```
+
+```
+##      data_source          Accession uniprot_id position        sequence
+## 1: HeLa_WT_J6pep Q9Y5B9|SP16H_HUMAN     Q9Y5B9     1043 RGSRHSSAPPKKKRK
+## 2:   HeLa_WT_JQ1 Q9Y5B9|SP16H_HUMAN     Q9Y5B9     1044  GSRHSSAPPKKKRK
+##    full_length_seq_flag curated_oxK_site oxK_ratio    screen residue IUPRED2
+## 1:                FALSE  JMJD6_substrate 0.2550824 JQ1,J6pep       K  0.7916
+## 2:                FALSE  JMJD6_substrate 0.1028174 JQ1,J6pep       K  0.8235
+##    K_position K_ratio K_ratio_score WindowHydropathy windowCharge CenterResidue
+## 1:          1     0.4           0.4               NA           NA              
+## 2:          1     0.3           0.4               NA           NA              
+##    Window total_area_K total_area_oxK total_n_feature_K total_n_feature_oxK
+## 1:           323750718       82583100                53                  21
+## 2:            37340000        3839200                11                   2
+##          seq5 MW_within_1 MW_within_2 stoichiometry_available
+## 1: SSAPPKKKRK       FALSE       FALSE                    TRUE
+## 2:  SAPPKKKRK       FALSE       FALSE                    TRUE
+##         Accession_position
+## 1: Q9Y5B9|SP16H_HUMAN_1043
+## 2: Q9Y5B9|SP16H_HUMAN_1044
+```
+
+```r
+non.duplicated.stoichiometry.dt <- stoichiometry.dt[
+    (data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep")) |
+    (curated_oxK_site == "JMJD6_substrate")
+][CenterResidue == "K"][
+    order(
+        data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep"),
+        curated_oxK_site == "JMJD6_substrate",
+        oxK_ratio,
+        decreasing = TRUE
+    )
+][
+    !duplicated(paste(Accession_position))
 ]
 
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ```
 
 ```
-## [1] "Positions and proteins in aggregated data:"
+## [1] "Total unique JMJD6 substrate proteins and sites:"
+##    curated_oxK_site unique_protein_N unique_site_N
+## 1:  JMJD6_substrate               53           161
+## 2:           Others             1992         16943
+## [1] "by the availability of stocihiometry data"
 ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
-## 1:  JMJD6_substrate                    TRUE               46           117
-## 2:           Others                    TRUE             1992         16943
-##    curated_oxK_site stoichiometry_available   data_source unique_protein_N
-## 1:  JMJD6_substrate                    TRUE HeLa_WT_J6pep               37
-## 2:  JMJD6_substrate                    TRUE   HeLa_WT_JQ1               16
-## 3:           Others                    TRUE HeLa_WT_J6pep             1938
-## 4:           Others                    TRUE   HeLa_WT_JQ1              437
-##    unique_site_N
-## 1:            58
-## 2:            59
-## 3:         12609
-## 4:          4334
+## 1:  JMJD6_substrate                    TRUE               51           155
+## 2:  JMJD6_substrate                   FALSE                2             6
+## 3:           Others                    TRUE             1992         16943
+## [1] "by the data source"
+##    curated_oxK_site stoichiometry_available           data_source
+## 1:  JMJD6_substrate                   FALSE                      
+## 2:  JMJD6_substrate                    TRUE HeLa_JMJD6FLAG_FLAGIP
+## 3:  JMJD6_substrate                    TRUE         HeLa_WT_J6pep
+## 4:  JMJD6_substrate                    TRUE           HeLa_WT_JQ1
+## 5:  JMJD6_substrate                    TRUE           MCF7_WT_JQ1
+## 6:           Others                    TRUE         HeLa_WT_J6pep
+## 7:           Others                    TRUE           HeLa_WT_JQ1
+##    unique_protein_N unique_site_N
+## 1:                2             6
+## 2:               12            39
+## 3:               36            57
+## 4:               15            58
+## 5:                1             1
+## 6:             1938         12609
+## 7:              437          4334
 ```
 
 ```r
 ## Sanity checks
-non.duplicated.stoichiometry.dt[
-    curated_oxK_site == "JMJD6_substrate" & oxK_ratio == 0
-]
-```
-
-```
-##       data_source          Accession uniprot_id position              sequence
-##  1: HeLa_WT_J6pep O15042|SR140_HUMAN     O15042      981 HKDSPRDVSKKAKRSPSGSRT
-##  2:   HeLa_WT_JQ1 O95232|LC7L3_HUMAN     O95232      248 TEEPDRDERLKKEKQEREERE
-##  3:   HeLa_WT_JQ1 O95232|LC7L3_HUMAN     O95232      249 EEPDRDERLKKEKQEREEREK
-##  4:   HeLa_WT_JQ1 O95232|LC7L3_HUMAN     O95232      251 PDRDERLKKEKQEREEREKER
-##  5: HeLa_WT_J6pep O95232|LC7L3_HUMAN     O95232      388 EKEKRGSDDKKSSVKSGSREK
-##  6: HeLa_WT_J6pep O95232|LC7L3_HUMAN     O95232      392 RGSDDKKSSVKSGSREKQSED
-##  7: HeLa_WT_J6pep  P02545|LMNA_HUMAN     P02545      341 RDTSRRLLAEKEREMAEMRAR
-##  8:   HeLa_WT_JQ1 P0DMV8|HS71A_HUMAN     P0DMV8      248 VNHFVEEFKRKHKKDISQNKR
-##  9:   HeLa_WT_JQ1 P11142|HSP7C_HUMAN     P11142      248 VNHFIAEFKRKHKKDISENKR
-## 10:   HeLa_WT_JQ1  P11387|TOP1_HUMAN     P11387       23 EADFRLNDSHKHKDKHKDREH
-## 11:   HeLa_WT_JQ1  P11387|TOP1_HUMAN     P11387       40 DREHRHKEHKKEKDREKSKHS
-## 12:   HeLa_WT_JQ1  P11387|TOP1_HUMAN     P11387      159 PKKIKTEDTKKEKKRKLEEEE
-## 13: HeLa_WT_J6pep Q05519|SRS11_HUMAN     Q05519      411 SKDKEKDRERKSESDKDVKQV
-## 14: HeLa_WT_J6pep  Q13428|TCOF_HUMAN     Q13428     1348 SRKGWESRKRKLSGDQPAART
-## 15: HeLa_WT_J6pep Q13435|SF3B2_HUMAN     Q13435      320 ETEEDTVSVSKKEKNRKRRNR
-## 16:   HeLa_WT_JQ1 Q13435|SF3B2_HUMAN     Q13435      331 KEKNRKRRNRKKKKKPQRVRG
-## 17:   HeLa_WT_JQ1 Q13435|SF3B2_HUMAN     Q13435      334 NRKRRNRKKKKKPQRVRGVSS
-## 18:   HeLa_WT_JQ1 Q13435|SF3B2_HUMAN     Q13435      335 RKRRNRKKKKKPQRVRGVSSE
-## 19:   HeLa_WT_JQ1 Q14498|RBM39_HUMAN     Q14498      103 GRYRSPYSGPKFNSAIRGKIG
-## 20:   HeLa_WT_JQ1 Q14498|RBM39_HUMAN     Q14498      119 RGKIGLPHSIKLSRRRSRSKS
-## 21:   HeLa_WT_JQ1  Q15059|BRD3_HUMAN     Q15059      643 VKSCLQKKQRKPFSASGKKQA
-## 22: HeLa_WT_J6pep Q66PJ3|AR6P4_HUMAN     Q66PJ3      290 SSSDGRKKRGKYKDKRRKKKK
-## 23: HeLa_WT_J6pep Q66PJ3|AR6P4_HUMAN     Q66PJ3      294 GRKKRGKYKDKRRKKKKKRKK
-## 24:   HeLa_WT_JQ1 Q6NYC1|JMJD6_HUMAN     Q6NYC1      219 FPTSTPRELIKVTRDEGGNQQ
-## 25: HeLa_WT_J6pep Q6NYC1|JMJD6_HUMAN     Q6NYC1      307 VWHKTVRGRPKLSRKWYRILK
-## 26:   HeLa_WT_JQ1  Q6UN15|FIP1_HUMAN     Q6UN15      564 SEEGDSHRRHKHKKSKRSKEG
-## 27: HeLa_WT_J6pep  Q8IWS0|PHF6_HUMAN     Q8IWS0      173 RKGRPRKTNFKGLSEDTRSTS
-## 28: HeLa_WT_J6pep Q8N9Q2|SR1IP_HUMAN     Q8N9Q2      142 KKEKKKRKKEKHSSTPNSSEF
-## 29: HeLa_WT_J6pep Q8WXA9|SREK1_HUMAN     Q8WXA9      400 SRSPRTSKTIKRKSSRSPSPR
-## 30: HeLa_WT_J6pep Q96SB4|SRPK1_HUMAN     Q96SB4       16 LALQARKKRTKAKKDKAQRKS
-## 31: HeLa_WT_J6pep Q96SB4|SRPK1_HUMAN     Q96SB4       18 LQARKKRTKAKKDKAQRKSET
-## 32: HeLa_WT_J6pep Q96SB4|SRPK1_HUMAN     Q96SB4       19 QARKKRTKAKKDKAQRKSETQ
-## 33:   HeLa_WT_JQ1 Q9BRS2|RIOK1_HUMAN     Q9BRS2      535 TDPDIDKKERKKMVKEAQREK
-## 34:   HeLa_WT_JQ1 Q9BRS2|RIOK1_HUMAN     Q9BRS2      539 IDKKERKKMVKEAQREKRKNK
-## 35: HeLa_WT_J6pep Q9BRS2|RIOK1_HUMAN     Q9BRS2      555 KRKNKIPKHVKKRKEKTAKTK
-## 36:   HeLa_WT_JQ1  Q9BVP2|GNL3_HUMAN     Q9BVP2       20 SKRMTCHKRYKIQKKVREHHR
-## 37:   HeLa_WT_JQ1  Q9BVP2|GNL3_HUMAN     Q9BVP2       23 MTCHKRYKIQKKVREHHRKLR
-## 38: HeLa_WT_J6pep Q9NQ29|LUC7L_HUMAN     Q9NQ29      323 HRRASRDRSAKYKFSRERASR
-## 39: HeLa_WT_J6pep Q9NWB6|ARGL1_HUMAN     Q9NWB6       13 RSRSRSSSRSKHTKSSKHNKK
-## 40: HeLa_WT_J6pep  Q9NYK5|RM39_HUMAN     Q9NYK5      322 IWDKLLERSRKMVTEDQSKAT
-##       data_source          Accession uniprot_id position              sequence
-##     full_length_seq_flag curated_oxK_site oxK_ratio    screen residue IUPRED2
-##  1:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.9606
-##  2:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6851
-##  3:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6806
-##  4:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6755
-##  5:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8530
-##  6:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8681
-##  7:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6712
-##  8:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.3774
-##  9:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.3321
-## 10:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8872
-## 11:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.9287
-## 12:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6755
-## 13:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7916
-## 14:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8375
-## 15:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8198
-## 16:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7982
-## 17:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7799
-## 18:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7718
-## 19:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6576
-## 20:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7629
-## 21:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.6089
-## 22:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8655
-## 23:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8713
-## 24:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.5707
-## 25:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.2399
-## 26:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.9013
-## 27:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7209
-## 28:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.8125
-## 29:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.9329
-## 30:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.5901
-## 31:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7036
-## 32:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7951
-## 33:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7799
-## 34:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7459
-## 35:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7799
-## 36:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7951
-## 37:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7415
-## 38:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.7718
-## 39:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.9649
-## 40:                 TRUE  JMJD6_substrate         0 FLAGJMJD6       K  0.3356
-##     full_length_seq_flag curated_oxK_site oxK_ratio    screen residue IUPRED2
-##     K_position K_ratio K_ratio_score WindowHydropathy  windowCharge
-##  1:          1     0.2           0.3       0.28390909  3.613031e-01
-##  2:          1     0.3           0.3       0.15254545  8.927831e-02
-##  3:          1     0.2           0.3       0.15254545  8.927831e-02
-##  4:          1     0.2           0.3       0.15254545  8.944481e-02
-##  5:          1     0.2           0.4       0.31727273  8.864616e-02
-##  6:          1     0.2           0.3       0.30718182  2.705619e-01
-##  7:          1     0.1           0.1       0.39590909 -9.960256e-05
-##  8:          1     0.4           0.4       0.23236364  1.829324e-01
-##  9:          1     0.4           0.4       0.28590909  2.736074e-01
-## 10:          1     0.4           0.4       0.20900000  9.997793e-02
-## 11:          1     0.4           0.5       0.09090909  9.603473e-02
-## 12:          1     0.4           0.5       0.13745455  2.692648e-01
-## 13:          1     0.3           0.4       0.13336364  8.911182e-02
-## 14:          1     0.1           0.3       0.24245455  1.805185e-01
-## 15:          1     0.4           0.4       0.32736364  2.705619e-01
-## 16:          1     0.5           0.6       0.07590909  8.133814e-01
-## 17:          1     0.2           0.6       0.16781818  6.323639e-01
-## 18:          1     0.1           0.6       0.15772727  7.232717e-01
-## 19:          1     0.2           0.2       0.45154545  9.009684e-02
-## 20:          1     0.2           0.2       0.38172727  3.666103e-01
-## 21:          1     0.3           0.4       0.27981818  3.612368e-01
-## 22:          1     0.6           0.6       0.11436364  6.324174e-01
-## 23:          1     0.7           0.7       0.12045455  6.316193e-01
-## 24:          1     0.1           0.1       0.36663636 -2.660963e-04
-## 25:          1     0.2           0.2       0.32836364  4.529427e-01
-## 26:          1     0.5           0.5       0.13836364  5.535860e-01
-## 27:          1     0.1           0.3       0.31718182  8.961075e-02
-## 28:          1     0.1           0.7       0.18990909  3.644488e-01
-## 29:          1     0.2           0.3       0.29800000  4.521446e-01
-## 30:          1     0.5           0.6       0.14863636  6.316322e-01
-## 31:          1     0.4           0.6       0.21627273  4.506147e-01
-## 32:          1     0.3           0.6       0.21018182  4.514128e-01
-## 33:          1     0.3           0.5       0.21327273  2.692648e-01
-## 34:          1     0.3           0.5       0.26472727  2.707947e-01
-## 35:          1     0.5           0.5       0.26172727  4.545585e-01
-## 36:          1     0.3           0.4       0.32945455  4.353016e-01
-## 37:          1     0.3           0.4       0.26272727  3.652341e-01
-## 38:          1     0.2           0.2       0.26672727  3.620884e-01
-## 39:          1     0.4           0.4       0.28781818  2.749044e-01
-## 40:          1     0.2           0.2       0.34845455 -2.660963e-04
-##     K_position K_ratio K_ratio_score WindowHydropathy  windowCharge
-##     CenterResidue      Window total_area_K total_area_oxK total_n_feature_K
-##  1:             K RDVSKKAKRSP      3092200              0                 1
-##  2:             K RDERLKKEKQE     15544000              0                 1
-##  3:             K DERLKKEKQER     15544000              0                 1
-##  4:             K RLKKEKQEREE     15544000              0                 1
-##  5:             K GSDDKKSSVKS     35237900              0                19
-##  6:             K KKSSVKSGSRE     35237900              0                19
-##  7:             K RLLAEKEREMA     10320000              0                10
-##  8:             K EEFKRKHKKDI   1035400000              0                 5
-##  9:             K AEFKRKHKKDI   2206150200              0                 6
-## 10:             K LNDSHKHKDKH     24432980              0                15
-## 11:             K HKEHKKEKDRE      5188940              0                 5
-## 12:             K TEDTKKEKKRK       395630              0                 1
-## 13:             K KDRERKSESDK      8528200              0                 7
-## 14:             K ESRKRKLSGDQ      2533500              0                 8
-## 15:             K TVSVSKKEKNR      5228650              0                 6
-## 16:             K KRRNRKKKKKP     78541000              0                 2
-## 17:             K NRKKKKKPQRV     78541000              0                 2
-## 18:             K RKKKKKPQRVR     78541000              0                 2
-## 19:             K PYSGPKFNSAI    104370000              0                 2
-## 20:             K LPHSIKLSRRR    185470000              0                 2
-## 21:             K QKKQRKPFSAS   4684755410              0                43
-## 22:             K RKKRGKYKDKR      8300500              0                 6
-## 23:             K GKYKDKRRKKK      8300500              0                 6
-## 24:             K PRELIKVTRDE     10408000              0                 1
-## 25:             K VRGRPKLSRKW      2241800              0                 2
-## 26:             K SHRRHKHKKSK      7363900              0                 4
-## 27:             K RKTNFKGLSED     91444930              0                17
-## 28:             K KRKKEKHSSTP     10117900              0                11
-## 29:             K TSKTIKRKSSR      7010810              0                 3
-## 30:             K RKKRTKAKKDK     36438930              0                13
-## 31:             K KRTKAKKDKAQ     36829160              0                15
-## 32:             K RTKAKKDKAQR     36829160              0                15
-## 33:             K DKKERKKMVKE     14011000              0                 1
-## 34:             K RKKMVKEAQRE     14011000              0                 1
-## 35:             K IPKHVKKRKEK     45521600              0                13
-## 36:             K CHKRYKIQKKV    121020000              0                 3
-## 37:             K RYKIQKKVREH    121020000              0                 3
-## 38:             K RDRSAKYKFSR     14315270              0                11
-## 39:             K SSSRSKHTKSS       716380              0                 1
-## 40:             K LERSRKMVTED       441510              0                 1
-##     CenterResidue      Window total_area_K total_area_oxK total_n_feature_K
-##     total_n_feature_oxK        seq5 MW_within_1 MW_within_2
-##  1:                   0 RDVSKKAKRSP       FALSE       FALSE
-##  2:                   0 RDERLKKEKQE       FALSE       FALSE
-##  3:                   0 DERLKKEKQER       FALSE       FALSE
-##  4:                   0 RLKKEKQEREE       FALSE       FALSE
-##  5:                   0 GSDDKKSSVKS       FALSE       FALSE
-##  6:                   0 KKSSVKSGSRE       FALSE       FALSE
-##  7:                   0 RLLAEKEREMA       FALSE       FALSE
-##  8:                   0 EEFKRKHKKDI       FALSE       FALSE
-##  9:                   0 AEFKRKHKKDI       FALSE       FALSE
-## 10:                   0 LNDSHKHKDKH       FALSE       FALSE
-## 11:                   0 HKEHKKEKDRE       FALSE       FALSE
-## 12:                   0 TEDTKKEKKRK       FALSE       FALSE
-## 13:                   0 KDRERKSESDK       FALSE       FALSE
-## 14:                   0 ESRKRKLSGDQ       FALSE       FALSE
-## 15:                   0 TVSVSKKEKNR       FALSE       FALSE
-## 16:                   0 KRRNRKKKKKP       FALSE       FALSE
-## 17:                   0 NRKKKKKPQRV       FALSE       FALSE
-## 18:                   0 RKKKKKPQRVR       FALSE       FALSE
-## 19:                   0 PYSGPKFNSAI       FALSE       FALSE
-## 20:                   0 LPHSIKLSRRR       FALSE       FALSE
-## 21:                   0 QKKQRKPFSAS       FALSE       FALSE
-## 22:                   0 RKKRGKYKDKR       FALSE       FALSE
-## 23:                   0 GKYKDKRRKKK       FALSE       FALSE
-## 24:                   0 PRELIKVTRDE       FALSE       FALSE
-## 25:                   0 VRGRPKLSRKW       FALSE       FALSE
-## 26:                   0 SHRRHKHKKSK       FALSE       FALSE
-## 27:                   0 RKTNFKGLSED       FALSE       FALSE
-## 28:                   0 KRKKEKHSSTP       FALSE       FALSE
-## 29:                   0 TSKTIKRKSSR       FALSE       FALSE
-## 30:                   0 RKKRTKAKKDK       FALSE       FALSE
-## 31:                   0 KRTKAKKDKAQ       FALSE       FALSE
-## 32:                   0 RTKAKKDKAQR       FALSE       FALSE
-## 33:                   0 DKKERKKMVKE       FALSE        TRUE
-## 34:                   0 RKKMVKEAQRE       FALSE       FALSE
-## 35:                   0 IPKHVKKRKEK       FALSE       FALSE
-## 36:                   0 CHKRYKIQKKV       FALSE       FALSE
-## 37:                   0 RYKIQKKVREH       FALSE       FALSE
-## 38:                   0 RDRSAKYKFSR       FALSE       FALSE
-## 39:                   0 SSSRSKHTKSS       FALSE       FALSE
-## 40:                   0 LERSRKMVTED        TRUE        TRUE
-##     total_n_feature_oxK        seq5 MW_within_1 MW_within_2
-##     stoichiometry_available     Accession_position
-##  1:                    TRUE O15042|SR140_HUMAN_981
-##  2:                    TRUE O95232|LC7L3_HUMAN_248
-##  3:                    TRUE O95232|LC7L3_HUMAN_249
-##  4:                    TRUE O95232|LC7L3_HUMAN_251
-##  5:                    TRUE O95232|LC7L3_HUMAN_388
-##  6:                    TRUE O95232|LC7L3_HUMAN_392
-##  7:                    TRUE  P02545|LMNA_HUMAN_341
-##  8:                    TRUE P0DMV8|HS71A_HUMAN_248
-##  9:                    TRUE P11142|HSP7C_HUMAN_248
-## 10:                    TRUE   P11387|TOP1_HUMAN_23
-## 11:                    TRUE   P11387|TOP1_HUMAN_40
-## 12:                    TRUE  P11387|TOP1_HUMAN_159
-## 13:                    TRUE Q05519|SRS11_HUMAN_411
-## 14:                    TRUE Q13428|TCOF_HUMAN_1348
-## 15:                    TRUE Q13435|SF3B2_HUMAN_320
-## 16:                    TRUE Q13435|SF3B2_HUMAN_331
-## 17:                    TRUE Q13435|SF3B2_HUMAN_334
-## 18:                    TRUE Q13435|SF3B2_HUMAN_335
-## 19:                    TRUE Q14498|RBM39_HUMAN_103
-## 20:                    TRUE Q14498|RBM39_HUMAN_119
-## 21:                    TRUE  Q15059|BRD3_HUMAN_643
-## 22:                    TRUE Q66PJ3|AR6P4_HUMAN_290
-## 23:                    TRUE Q66PJ3|AR6P4_HUMAN_294
-## 24:                    TRUE Q6NYC1|JMJD6_HUMAN_219
-## 25:                    TRUE Q6NYC1|JMJD6_HUMAN_307
-## 26:                    TRUE  Q6UN15|FIP1_HUMAN_564
-## 27:                    TRUE  Q8IWS0|PHF6_HUMAN_173
-## 28:                    TRUE Q8N9Q2|SR1IP_HUMAN_142
-## 29:                    TRUE Q8WXA9|SREK1_HUMAN_400
-## 30:                    TRUE  Q96SB4|SRPK1_HUMAN_16
-## 31:                    TRUE  Q96SB4|SRPK1_HUMAN_18
-## 32:                    TRUE  Q96SB4|SRPK1_HUMAN_19
-## 33:                    TRUE Q9BRS2|RIOK1_HUMAN_535
-## 34:                    TRUE Q9BRS2|RIOK1_HUMAN_539
-## 35:                    TRUE Q9BRS2|RIOK1_HUMAN_555
-## 36:                    TRUE   Q9BVP2|GNL3_HUMAN_20
-## 37:                    TRUE   Q9BVP2|GNL3_HUMAN_23
-## 38:                    TRUE Q9NQ29|LUC7L_HUMAN_323
-## 39:                    TRUE  Q9NWB6|ARGL1_HUMAN_13
-## 40:                    TRUE  Q9NYK5|RM39_HUMAN_322
-##     stoichiometry_available     Accession_position
-```
-
-```r
 non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 ```
 
@@ -615,23 +441,13 @@ non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
 ```
 
 ```r
-non.duplicated.stoichiometry.dt[, table(data_source)]
-```
-
-```
-## data_source
-## HeLa_WT_J6pep   HeLa_WT_JQ1 
-##         12667          4393
-```
-
-```r
 non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 ```
 
 ```
 ## CenterResidue
-##           K 
-##     2 17058
+##     K 
+## 17104
 ```
 
 ```r
@@ -736,7 +552,7 @@ ggplot(
     )
 ```
 
-![](j3-properties-of-hydroxylation-sites_files/figure-html/amino acid enrichment-1.png)<!-- -->
+![](j3-properties-of-hydroxylation-sites_files/figure-html/amino_acid_enrichment-1.png)<!-- -->
 
 
 ## Biophysical properties
@@ -746,31 +562,24 @@ ggplot(
 ```r
 non.duplicated.stoichiometry.dt <-
     non.duplicated.stoichiometry.dt[
+        data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") &
         total_n_feature_K > 2 &
         !is.na(windowCharge)
     ]
-
-## Sanity checks
-non.duplicated.stoichiometry.dt[, table(CenterResidue)]
-```
-
-```
-## CenterResidue
-##     K 
-## 17036
-```
-
-```r
-data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
 
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ```
 
 ```
-## [1] "Positions and proteins in aggregated data:"
+## [1] "Total unique JMJD6 substrate proteins and sites:"
+##    curated_oxK_site unique_protein_N unique_site_N
+## 1:  JMJD6_substrate               39            93
+## 2:           Others             1992         16943
+## [1] "by the availability of stocihiometry data"
 ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
 ## 1:  JMJD6_substrate                    TRUE               39            93
 ## 2:           Others                    TRUE             1992         16943
+## [1] "by the data source"
 ##    curated_oxK_site stoichiometry_available   data_source unique_protein_N
 ## 1:  JMJD6_substrate                    TRUE HeLa_WT_J6pep               32
 ## 2:  JMJD6_substrate                    TRUE   HeLa_WT_JQ1                9
@@ -784,6 +593,19 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 ```
 
 ```r
+## Sanity checks
+non.duplicated.stoichiometry.dt[, table(CenterResidue)]
+```
+
+```
+## CenterResidue
+##     K 
+## 17036
+```
+
+```r
+data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
+
 non.duplicated.stoichiometry.dt[
     curated_oxK_site == "JMJD6_substrate"
 ][order(windowCharge)][, .(

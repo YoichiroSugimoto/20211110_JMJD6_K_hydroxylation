@@ -27,7 +27,7 @@ library("Biostrings")
 processors <- 8
 
 j2.input.dir <- file.path("../../data/j2-PTM-stoichiometry")
-j2.1.input.dir <- file.path(j2.input.dir, "hydroxyK-stoichiometry")
+j2.3.input.dir <- file.path(j2.input.dir, "hydroxyK-methylR-stoichiometry")
 
 results.dir <- normalizePath(file.path("../../results"))
 j0.res.dir <- file.path(results.dir, "j0-data-preprocessing")
@@ -116,7 +116,7 @@ The following filtration and data processing will be performed:
 5. Allow only 1 misclevage by trypsin 
    - At most one occurrence of K, K(+15.99), R, R(+14.02) in the peptide
    - Note that the following are allowed in the peptides
-	 - C terminal K, R, KP, RP
+	 - C terminal K and R, KP and RP
 	 - Propionylated K: K(+56.03), K(+72.02)
 	 - Dimethyl R: R(+28.03)
 6. The PTMs are assigned in the PTM column

@@ -7,11 +7,9 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
-   html_document:
-     highlight: haddock
+   github_document:
      toc: yes
      toc_depth: 2
-     keep_md: yes
 ---
 
 
@@ -74,7 +72,7 @@ all.protein.feature.per.pos.dt <- file.path(
 
 ## Stoichiometry data
 
-```{r stoichiometry data, fig.width = 10, fig.height = 5}
+```{r stoichiometry_data, fig.width = 10, fig.height = 5}
 
 stoichiometry.dt <- fread(
     file.path(
@@ -128,7 +126,8 @@ ggplot(
         axis.title.x = element_blank()
     ) +
     scale_x_discrete(guide = guide_axis(angle = 90)) +
-    ylab("Stoichiometry [%]")
+    ylab("Stoichiometry [%]") +
+    ggtitle("JMJD6 peptide pulldown data")
 
 reportOxKSiteStats <- function(stoichiometry.dt){
     print("Total unique JMJD6 substrate proteins and sites:")
@@ -173,7 +172,10 @@ reportOxKSiteStats <- function(stoichiometry.dt){
 temp <- reportOxKSiteStats(stoichiometry.dt)
 
 stoichiometry.dt[
-    curated_oxK_site == "JMJD6_substrate" & stoichiometry_available == FALSE,
+    order(Accession, position, -oxK_ratio)
+][, head(.SD, 1), by = list(Accession, position)][
+    curated_oxK_site == "JMJD6_substrate" &
+    (stoichiometry_available == FALSE | oxK_ratio == 0),
     .(Accession, position, curated_oxK_site, screen)
 ]
 
@@ -182,7 +184,7 @@ stoichiometry.dt[
 # Analysis of the properties of hydroxylation sites
 
 
-```{r fasta data}
+```{r fasta_data}
 
 stoichiometry.dt[, `:=`(
     protein_sequence = BSgenome::getSeq(
@@ -380,7 +382,7 @@ ggplot(
 ## Biophysical properties
 
 
-```{r analysis of sequence feature, fig.width = 6, fig.height = 6}
+```{r analysis_of_sequence_feature, fig.width = 6, fig.height = 6}
 
 non.duplicated.stoichiometry.dt <-
     non.duplicated.stoichiometry.dt[
@@ -461,7 +463,7 @@ ggplot(
 # Session information
 
 
-```{r session info}
+```{r session_info}
 
 sessioninfo::session_info()
 

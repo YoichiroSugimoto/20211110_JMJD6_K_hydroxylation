@@ -7,11 +7,9 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
-   html_document:
-     highlight: haddock
+   github_document:
      toc: yes
      toc_depth: 2
-     keep_md: yes
 ---
 
 
@@ -40,7 +38,7 @@ processors <- 8
 
 Note that the dummy data will be inserted for the PTM column, and thus the statistics for "All PTMs" are not meaningful here.
 
-```{r preprocessing peptide data}
+```{r preprocessing_peptide_data}
 
 j4.input.dir <- file.path("../../data/j4-de-novo-data")
 
@@ -109,7 +107,7 @@ save(
 
 Below are dummy data only used for test.
 
-```{r dummy data for development}
+```{r dummy_data_for_development}
 
 ## dummy.peptide <- c(
 ##     "KKKKKKKKKK", #K10
@@ -141,7 +139,7 @@ Below are dummy data only used for test.
 Actual analysis will be performed here
 
 
-```{r plot heatmap}
+```{r plot_heatmap}
 
 window.size <- 6
 denovo.score.cutoff <- 50
@@ -370,7 +368,7 @@ plotHeatmap <- function(k.count.capped.val, JMJD6.status, plot.score.dt){
 ```
 
 
-```{r plot data, fig.width = 5, fig.height = 2.5}
+```{r plot_data, fig.width = 5, fig.height = 2.5}
 
 for(jmjd6.status in c("WT", "JMJD6KO")){
     for(k.count.capped in c(as.character(1:4), "5+")){

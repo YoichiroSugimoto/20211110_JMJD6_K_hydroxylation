@@ -6,11 +6,9 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
-   html_document:
-     highlight: haddock
+   github_document:
      toc: yes
      toc_depth: 2
-     keep_md: yes
      fig_width: 5
      fig_height: 5
 ---
@@ -46,7 +44,7 @@ create.dirs(c(
 
 ## Data files
 
-```{r data preprocessing}
+```{r data_preprocessing}
 
 original.sample.names <- colnames(raw.abundance.dt)[3:ncol(raw.abundance.dt)]
 sample.names <- original.sample.names %>%
@@ -76,7 +74,7 @@ rownames(log2.abundance.mat) <- log2.abundance.dt[, uniprot_id]
 
 The following samples will be analysed.
 
-```{r sample data}
+```{r sample_data}
 
 sample.dt <- data.table(
     sample_name = sample.names,
@@ -94,7 +92,7 @@ print(sample.dt)
 Maximum K ratio of proteins by 10-mer sliding window will be extracted.
 Note that genes with ENSEMBL:xx ids were ignored. 
 
-```{r protein features}
+```{r protein_features}
 
 all.protein.feature.per.pos.dt <- file.path(
     j0.res.dir, "all_protein_feature_per_position.csv"
@@ -112,7 +110,7 @@ maxK.per.protein.dt <- maxK.per.protein.dt[aa_len > 20]
 ## Extraction of gene name
 
 
-```{r extraction of gene name}
+```{r extraction_of_gene_name}
 
 gene.name.dt <- log2.abundance.dt[, uniprot_id] %>%
     {select(
@@ -271,10 +269,11 @@ pheatmap(
 
 ```
 
-# DMOG dependent interactome
+
+# K score
 
 
-```{r JMJD6 dmog dependent int}
+```{r k_score}
 
 res.summry.dt <- merge(
     maxK.per.protein.dt,
@@ -287,14 +286,6 @@ fwrite(
     res.summry.dt,
     file.path(results.dir, "differential-protein-abundance.csv")
 )
-
-```
-
-
-# K ratio
-
-
-```{r k ratio}
 
 m.res.summry.dt <- melt(
     res.summry.dt,
@@ -385,7 +376,7 @@ merge(
 # Session information
 
 
-```{r session info}
+```{r session_info}
 
 sessioninfo::session_info()
 

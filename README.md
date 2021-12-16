@@ -1,9 +1,11 @@
 # Introduction
 
-This pipeline performs the analyses of LC-MS/MS data for "title of paper". Specifically, the pipeline performs the following analyses.
+This pipeline performs the analyses of LC-MS/MS data for **"Jmjd6 catalysed hydroxylation of unstructured poly-lysine domains in proteins associating with membraneless organelles"**.
+To run this pipeline, the LC-MS/MS data must have been processed by `Peaks Studio` or `Spectronaut` as described in the paper.
+Specifically, the pipeline performs the following analyses.
 
 0. Data preprocessing
-    - Biochemical and biophysical properties of proteins such as local charge and disorderedness are calculated here
+    - Sequence and biophysical features of proteins such as local charge and disorderedness are calculated here.
 1. Analysis of JMJD6 interactome data
     - Proteins co-immunoprecipitated with JMJD6 in the presence of DMOG are identified, and their characteristics are examined.
 2. Analysis of JMJD6 hydroxylation sites and the stoichiometry
@@ -11,25 +13,11 @@ This pipeline performs the analyses of LC-MS/MS data for "title of paper". Speci
 3. Analysis of the characteristics of JMJD6 hydroxylation sites
 4. Analysis of de novo sequence data
 
-# Association with figures
-
-0. Data preprocessing
-    - Fig. 2B: K-ratio and disorderedness score for BRD4
-    - Fig. 3B and Fig. 4D: max K-ratio
-1. Analysis of JMJD6 interactome data
-    - Fig. 3B and D
-2. Analysis of JMJD6 hydroxylation sites and the stoichiometry
-    - Fig. 1D: j2-2, Lysine hydroxylation stoichiometry as a function of oxygen availability using AspN digested data
-    - Fig. 2C and Fig. 4B: j2-1, Lysine hydroxylation stoichiometry
-    - Fig. 4D: j2-4, significance of lysine hydroxylation sites
-3. Analysis of the characteristics of JMJD6 hydroxylation sites
-    - Fig. 4E
-4.
 
 # Directory structures
 
 ## Data
-Input data (e.g. outputs of LC-MS/MS data analyses by `Peaks` (csv files) or manually curated JMJD6 hydroxylation sites (xlsx files)) are stored.
+Input data (outputs of LC-MS/MS data processed by `Peaks Studio` and `Spectronaut` as well as manually curated JMJD6 hydroxylation sites) are stored.
 
 ``` bash
 ├── data
@@ -37,31 +25,34 @@ Input data (e.g. outputs of LC-MS/MS data analyses by `Peaks` (csv files) or man
 │   ├── j1-JMJD6-coIP
 │   │   └── 20210408-JMJD6-interactomics-data.csv
 │   ├── j2-PTM-stoichiometry
+│   │   ├── curated_JMJD6_substrate_sites.csv
 │   │   ├── hydroxyK-methylR-stoichiometry
-│   │   │   ├── MethylR_and_HydroxK_J6_HeLa.csv
-│   │   │   ├── MethylR_and_HydroxK_J6_J6KO.csv
-│   │   │   ├── MethylR_and_HydroxK_JQ1_HeLa.csv
-│   │   │   └── MethylR_and_HydroxK_JQ1_J6KO.csv
+│   │   │   ├── HeLa_JMJD6KO_J6pep_Trypsin_oxKandMetR__protein-peptides.csv
+│   │   │   ├── HeLa_JMJD6KO_JQ1_Trypsin_oxKandMetR__protein-peptides.csv
+│   │   │   ├── HeLa_WT_J6pep_Trypsin_oxKandMetR__protein-peptides.csv
+│   │   │   └── HeLa_WT_JQ1_Trypsin_oxKandMetR__protein-peptides.csv
 │   │   ├── hydroxyK-stoichiometry
-│   │   │   ├── HEK293__protein-peptides.csv
-│   │   │   ├── HeLa_J6KO_J6PD__protein-peptides.csv
-│   │   │   ├── HeLa_J6KO__protein-peptides.csv
-│   │   │   ├── HeLa_WT_J6PD__protein-peptides.csv
-│   │   │   ├── HeLa_WT__protein-peptides.csv
-│   │   │   └── MCF7__protein-peptides.csv
-│   │   ├── hydroxyK-stoichiometry_AspN
-│   │   │   └── BRD4_AspN_Dox_FDR_and_Ion_Intensity_filter_protein-peptides.csv
-│   │   └── PTM-significance
-│   │       └── Peptide_PD_data_for_fishers_test.xlsx
-│   └── j3-properties-of-hydroxylation-sites
-│       └── 20210721_JMJD6_manually_curated_hydroxylation_site.xlsx
+│   │   │   ├── HEK293_WT_JQ1_Trypsin_oxK__protein-peptides.csv
+│   │   │   ├── HeLa_JMJD6FLAG_FLAGIP_Trypsin_oxK__protein-peptides.csv
+│   │   │   ├── HeLa_JMJD6KO_J6pep_Trypsin_oxK__protein-peptides.csv
+│   │   │   ├── HeLa_JMJD6KO_JQ1_Trypsin_oxK__protein-peptides.csv
+│   │   │   ├── HeLa_WT_J6pep_Trypsin_oxK__protein-peptides.csv
+│   │   │   ├── HeLa_WT_JQ1_Trypsin_oxK__protein-peptides.csv
+│   │   │   └── MCF7_WT_JQ1_Trypsin_oxK__protein-peptides.csv
+│   │   └── hydroxyK-stoichiometry_AspN
+│   │       └── HeLa_WT_BRD4IP_AspN_oxK__protein-peptides.csv
+│   └── j4-de-novo-data
+│       ├── HeLa_JQ1_de_novo_peptides.csv
+│       ├── HeLa_peptide_de_novo_peptides.csv
+│       ├── J6KO_JQ1_de_novo_peptides.csv
+│       └── J6KO_peptide_de_novo_peptides.csv
 ```
 
 ## Scripts
 
 ### Master scripts
 Running `run_all_sbatch.sh` scripts will reproduce all the results and figures from this pipeline.
-Master scripts sequentially run the `rmarkdown` scripts in `R` directory.
+This script sequentially runs the `rmarkdown` scripts in `R` directory.
 
 ```bash
 ├── master_scripts
@@ -84,41 +75,42 @@ Master scripts sequentially run the `rmarkdown` scripts in `R` directory.
 │   ├── j1-JMJD6-coIP-with-DMOG
 │   │   └── j1-analysis-of-JMJD6-interactome-data.rmd
 │   ├── j2-PTM-stoichiometry
+│   │   ├── functions
+│   │   │   └── stoichiometry_functions.R
 │   │   ├── j2-1-hydroxy-K-stoichiometry.rmd
 │   │   ├── j2-2-hydroxy-K-stoichiometry-with-AspN.rmd
-│   │   ├── j2-3-hydroxy-K-and-met-R-stoichiometry.rmd
-│   │   └── j2-4-significance-of-K-hydroxylation.rmd
+│   │   └── j2-3-hydroxy-K-and-met-R-stoichiometry.rmd
 │   ├── j3-properties-of-hydroxylation-sites
-│   │   ├── j3-properties-of-hydroxylation-sites.rmd
+│   │   └── j3-properties-of-hydroxylation-sites.rmd
+│   ├── j4-de-novo-data-analysis
+│   │   └── j4-de-novo-data-analysis.rmd
 │   └── run_rmd.R
 ```
 
 ## Doc
-`Doc` stores the html outputs of the `rmakdown` scripts. The files contain the scripts and documentations.
+`Doc` stores the `html` and `markdown` outputs of the `rmakdown` scripts. The files contain the scripts and documentations.
 
 
 ## Results
 
-`Results` stores the outputs generated by outputs of the `rmakdown` scripts.
-
+`Results` stores the outputs generated by the `rmakdown` scripts.
 
 ```bash
 └── results
     ├── differential-protein-abundance.csv
     ├── j0-data-preprocessing
     │   ├── all_protein_feature_per_position.csv
-    └── j2-PTM-stoichiometry
-        ├── j2-1-PTM-stoichiometry-K-only
-        │   ├── long_K_stoichiometry_data.csv
-        │   └── wide_K_stoichiometry_data.csv
-        ├── j2-2-PTM-stoichiometry-K-only-AspN
-        │   └── hydroxylation_stoichiometry_for_AspN_data.csv
-        ├── j2-3-PTM-stoichiometry-K-and-R
-        │   ├── long_K_stoichiometry_data.csv
-        │   ├── long_R_stoichiometry_data.csv
-        │   ├── wide_K_stoichiometry_data.csv
-        │   └── wide_R_stoichiometry_data.csv
-        └── j2-4-significance-of-PTM
-            └── significance-of-hydroxylation-site-v2.csv
-
+    ├── j2-PTM-stoichiometry
+    │   ├── j2-1-PTM-stoichiometry-K-only
+    │   │   ├── long_K_stoichiometry_data.csv
+    │   │   └── wide_K_stoichiometry_data.csv
+    │   ├── j2-2-PTM-stoichiometry-K-only-AspN
+    │   │   └── hydroxylation_stoichiometry_for_AspN_data.csv
+    │   └── j2-3-PTM-stoichiometry-K-and-R
+    │       ├── long_K_stoichiometry_data.csv
+    │       ├── long_R_stoichiometry_data.csv
+    │       ├── wide_K_stoichiometry_data.csv
+    │       └── wide_R_stoichiometry_data.csv
+    └── j4-de-novo-data-analysis
 ```
+

@@ -131,7 +131,18 @@ ggplot(
     ylab("Stoichiometry [%]")
 
 reportOxKSiteStats <- function(stoichiometry.dt){
-    print("Positions and proteins in aggregated data:")
+    print("Total unique JMJD6 substrate proteins and sites:")
+    stoichiometry.dt[, list(
+        unique_protein_N = uniqueN(Accession),
+        unique_site_N = uniqueN(Accession_position)
+    ),
+    by = list(
+        curated_oxK_site
+    )
+    ][order(curated_oxK_site)] %>%
+        print
+
+    print("by the availability of stocihiometry data")
     stoichiometry.dt[, list(
         unique_protein_N = uniqueN(Accession),
         unique_site_N = uniqueN(Accession_position)
@@ -143,6 +154,7 @@ reportOxKSiteStats <- function(stoichiometry.dt){
     ][order(curated_oxK_site, -stoichiometry_available)] %>%
         print
 
+    print("by the data source")
     stoichiometry.dt[, list(
         unique_protein_N = uniqueN(Accession),
         unique_site_N = uniqueN(Accession_position)
@@ -161,7 +173,7 @@ reportOxKSiteStats <- function(stoichiometry.dt){
 temp <- reportOxKSiteStats(stoichiometry.dt)
 
 stoichiometry.dt[
-    curated_oxK_site == TRUE & stoichiometry_available == FALSE,
+    curated_oxK_site == "JMJD6_substrate" & stoichiometry_available == FALSE,
     .(Accession, position, curated_oxK_site, screen)
 ]
 
@@ -225,28 +237,41 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 ## Amino acid enrichment around the hydroxylation sites
 
 
-```{r amino acid enrichment, fig.width = 7}
+```{r amino_acid_enrichment, fig.width = 7}
 
-non.duplicated.stoichiometry.dt <- stoichiometry.dt[
-    data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") | is.na(data_source)
-][
+print("the following sites were excluded from the analysis:")
+stoichiometry.dt[
+    (data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep")) |
+    (curated_oxK_site == "JMJD6_substrate")
+][CenterResidue != "K"][
     order(
+        data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep"),
         curated_oxK_site == "JMJD6_substrate",
         oxK_ratio,
         decreasing = TRUE
     )
 ][
-    !duplicated(paste(Accession, position))
+    !duplicated(paste(Accession_position))
+]
+
+non.duplicated.stoichiometry.dt <- stoichiometry.dt[
+    (data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep")) |
+    (curated_oxK_site == "JMJD6_substrate")
+][CenterResidue == "K"][
+    order(
+        data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep"),
+        curated_oxK_site == "JMJD6_substrate",
+        oxK_ratio,
+        decreasing = TRUE
+    )
+][
+    !duplicated(paste(Accession_position))
 ]
 
 temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 ## Sanity checks
-non.duplicated.stoichiometry.dt[
-    curated_oxK_site == "JMJD6_substrate" & oxK_ratio == 0
-]
 non.duplicated.stoichiometry.dt[duplicated(Accession_position)]
-non.duplicated.stoichiometry.dt[, table(data_source)]
 non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
 ## Back to analysis
@@ -359,16 +384,17 @@ ggplot(
 
 non.duplicated.stoichiometry.dt <-
     non.duplicated.stoichiometry.dt[
+        data_source %in% c("HeLa_WT_JQ1", "HeLa_WT_J6pep") &
         total_n_feature_K > 2 &
         !is.na(windowCharge)
     ]
+
+temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 ## Sanity checks
 non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
 data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
-
-temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
 non.duplicated.stoichiometry.dt[
     curated_oxK_site == "JMJD6_substrate"

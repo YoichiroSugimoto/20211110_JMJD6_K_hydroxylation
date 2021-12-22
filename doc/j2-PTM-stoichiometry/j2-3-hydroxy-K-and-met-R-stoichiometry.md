@@ -2,7 +2,7 @@ j2-3 Analysis of the stoichiometry of lysine hydroxylation and arginine
 methylation
 ================
 Yoichiro Sugimoto
-16 December, 2021
+22 December, 2021
 
   - [Environment setup](#environment-setup)
   - [Data import](#data-import)
@@ -408,7 +408,7 @@ sessioninfo::session_info()
     ##  collate  en_GB.UTF-8                 
     ##  ctype    en_GB.UTF-8                 
     ##  tz       Europe/London               
-    ##  date     2021-12-16                  
+    ##  date     2021-12-22                  
     ## 
     ## ─ Packages ───────────────────────────────────────────────────────────────────
     ##  package              * version  date       lib source        

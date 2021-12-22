@@ -1,7 +1,7 @@
 Analysis of lysine hydroxylation stoichiometry and protein features
 ================
 Yoichiro Sugimoto
-16 December, 2021
+22 December, 2021
 
   - [Package import](#package-import)
   - [Data import](#data-import)
@@ -169,13 +169,13 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 
     ## [1] "Total unique JMJD6 substrate proteins and sites:"
     ##    curated_oxK_site unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate               54           163
-    ## 2:           Others             4172         49498
+    ## 1:  JMJD6_substrate               49           153
+    ## 2:           Others             4172         49508
     ## [1] "by the availability of stocihiometry data"
     ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate                    TRUE               52           157
+    ## 1:  JMJD6_substrate                    TRUE               47           147
     ## 2:  JMJD6_substrate                   FALSE                2             6
-    ## 3:           Others                    TRUE             4172         49498
+    ## 3:           Others                    TRUE             4172         49508
     ## [1] "by the data source"
     ##     curated_oxK_site stoichiometry_available           data_source
     ##  1:  JMJD6_substrate                   FALSE                      
@@ -195,20 +195,20 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
     ## 15:           Others                    TRUE           MCF7_WT_JQ1
     ##     unique_protein_N unique_site_N
     ##  1:                2             6
-    ##  2:                4            31
-    ##  3:               39           123
-    ##  4:               41            82
-    ##  5:               22            65
-    ##  6:               42            84
-    ##  7:               26            76
-    ##  8:                7            35
-    ##  9:              242          1860
-    ## 10:             1142         10962
-    ## 11:             3692         39086
-    ## 12:              678          9912
-    ## 13:             3224         30046
-    ## 14:              688          9634
-    ## 15:              269          2457
+    ##  2:                4            30
+    ##  3:               36           117
+    ##  4:               38            75
+    ##  5:               18            57
+    ##  6:               39            77
+    ##  7:               22            68
+    ##  8:                6            33
+    ##  9:              242          1861
+    ## 10:             1142         10968
+    ## 11:             3692         39093
+    ## 12:              678          9920
+    ## 13:             3224         30053
+    ## 14:              688          9642
+    ## 15:              269          2459
 
 ``` r
 stoichiometry.dt[
@@ -221,13 +221,12 @@ stoichiometry.dt[
 ```
 
     ##             Accession position curated_oxK_site    screen
-    ## 1:   Q01105|SET_HUMAN      132  JMJD6_substrate     J6pep
-    ## 2:  Q14331|FRG1_HUMAN       27  JMJD6_substrate FLAGJMJD6
-    ## 3:  Q14331|FRG1_HUMAN       29  JMJD6_substrate FLAGJMJD6
-    ## 4:  Q14331|FRG1_HUMAN       30  JMJD6_substrate FLAGJMJD6
-    ## 5: Q9UQ35|SRRM2_HUMAN      241  JMJD6_substrate FLAGJMJD6
-    ## 6: Q9UQ35|SRRM2_HUMAN      243  JMJD6_substrate FLAGJMJD6
-    ## 7: Q9UQ35|SRRM2_HUMAN      244  JMJD6_substrate FLAGJMJD6
+    ## 1:  Q14331|FRG1_HUMAN       27  JMJD6_substrate FLAGJMJD6
+    ## 2:  Q14331|FRG1_HUMAN       29  JMJD6_substrate FLAGJMJD6
+    ## 3:  Q14331|FRG1_HUMAN       30  JMJD6_substrate FLAGJMJD6
+    ## 4: Q9UQ35|SRRM2_HUMAN      241  JMJD6_substrate FLAGJMJD6
+    ## 5: Q9UQ35|SRRM2_HUMAN      243  JMJD6_substrate FLAGJMJD6
+    ## 6: Q9UQ35|SRRM2_HUMAN      244  JMJD6_substrate FLAGJMJD6
 
 # Analysis of the properties of hydroxylation sites
 
@@ -281,13 +280,13 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
 
     ## [1] "Total unique JMJD6 substrate proteins and sites:"
     ##    curated_oxK_site unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate               54           163
-    ## 2:           Others             2700         26301
+    ## 1:  JMJD6_substrate               49           153
+    ## 2:           Others             2700         26311
     ## [1] "by the availability of stocihiometry data"
     ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate                    TRUE               52           157
+    ## 1:  JMJD6_substrate                    TRUE               47           147
     ## 2:  JMJD6_substrate                   FALSE                2             6
-    ## 3:           Others                    TRUE             2700         26301
+    ## 3:           Others                    TRUE             2700         26311
     ## [1] "by the data source"
     ##     curated_oxK_site stoichiometry_available           data_source
     ##  1:  JMJD6_substrate                   FALSE                      
@@ -307,20 +306,20 @@ temp <- reportOxKSiteStats(stoichiometry.dt)
     ## 15:           Others                    TRUE           MCF7_WT_JQ1
     ##     unique_protein_N unique_site_N
     ##  1:                2             6
-    ##  2:                4            31
-    ##  3:               39           123
-    ##  4:               41            82
-    ##  5:               22            65
-    ##  6:               42            84
-    ##  7:               26            76
-    ##  8:                7            35
-    ##  9:               76           657
-    ## 10:              907          5639
-    ## 11:             2230         20906
-    ## 12:              406          4465
-    ## 13:             1966         15941
-    ## 14:              437          4505
-    ## 15:              128           942
+    ##  2:                4            30
+    ##  3:               36           117
+    ##  4:               38            75
+    ##  5:               18            57
+    ##  6:               39            77
+    ##  7:               22            68
+    ##  8:                6            33
+    ##  9:               76           658
+    ## 10:              907          5644
+    ## 11:             2230         20913
+    ## 12:              406          4473
+    ## 13:             1966         15948
+    ## 14:              437          4513
+    ## 15:              128           943
 
 # Analysis of sequence feature around hydroxylation site
 
@@ -387,30 +386,28 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
     ## [1] "Total unique JMJD6 substrate proteins and sites:"
     ##    curated_oxK_site unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate               53           161
-    ## 2:           Others             1992         16943
+    ## 1:  JMJD6_substrate               48           151
+    ## 2:           Others             1992         16952
     ## [1] "by the availability of stocihiometry data"
     ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate                    TRUE               51           155
+    ## 1:  JMJD6_substrate                    TRUE               46           145
     ## 2:  JMJD6_substrate                   FALSE                2             6
-    ## 3:           Others                    TRUE             1992         16943
+    ## 3:           Others                    TRUE             1992         16952
     ## [1] "by the data source"
     ##    curated_oxK_site stoichiometry_available           data_source
     ## 1:  JMJD6_substrate                   FALSE                      
     ## 2:  JMJD6_substrate                    TRUE HeLa_JMJD6FLAG_FLAGIP
     ## 3:  JMJD6_substrate                    TRUE         HeLa_WT_J6pep
     ## 4:  JMJD6_substrate                    TRUE           HeLa_WT_JQ1
-    ## 5:  JMJD6_substrate                    TRUE           MCF7_WT_JQ1
-    ## 6:           Others                    TRUE         HeLa_WT_J6pep
-    ## 7:           Others                    TRUE           HeLa_WT_JQ1
+    ## 5:           Others                    TRUE         HeLa_WT_J6pep
+    ## 6:           Others                    TRUE           HeLa_WT_JQ1
     ##    unique_protein_N unique_site_N
     ## 1:                2             6
     ## 2:               12            39
-    ## 3:               36            57
-    ## 4:               15            58
-    ## 5:                1             1
-    ## 6:             1938         12609
-    ## 7:              437          4334
+    ## 3:               34            54
+    ## 4:               13            52
+    ## 5:             1938         12612
+    ## 6:              437          4340
 
 ``` r
 ## Sanity checks
@@ -425,7 +422,7 @@ non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
     ## CenterResidue
     ##     K 
-    ## 17104
+    ## 17103
 
 ``` r
 ## Back to analysis
@@ -546,23 +543,23 @@ temp <- reportOxKSiteStats(non.duplicated.stoichiometry.dt)
 
     ## [1] "Total unique JMJD6 substrate proteins and sites:"
     ##    curated_oxK_site unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate               39            93
-    ## 2:           Others             1992         16943
+    ## 1:  JMJD6_substrate               35            84
+    ## 2:           Others             1992         16952
     ## [1] "by the availability of stocihiometry data"
     ##    curated_oxK_site stoichiometry_available unique_protein_N unique_site_N
-    ## 1:  JMJD6_substrate                    TRUE               39            93
-    ## 2:           Others                    TRUE             1992         16943
+    ## 1:  JMJD6_substrate                    TRUE               35            84
+    ## 2:           Others                    TRUE             1992         16952
     ## [1] "by the data source"
     ##    curated_oxK_site stoichiometry_available   data_source unique_protein_N
-    ## 1:  JMJD6_substrate                    TRUE HeLa_WT_J6pep               32
-    ## 2:  JMJD6_substrate                    TRUE   HeLa_WT_JQ1                9
+    ## 1:  JMJD6_substrate                    TRUE HeLa_WT_J6pep               30
+    ## 2:  JMJD6_substrate                    TRUE   HeLa_WT_JQ1                7
     ## 3:           Others                    TRUE HeLa_WT_J6pep             1938
     ## 4:           Others                    TRUE   HeLa_WT_JQ1              437
     ##    unique_site_N
-    ## 1:            48
-    ## 2:            45
-    ## 3:         12609
-    ## 4:          4334
+    ## 1:            45
+    ## 2:            39
+    ## 3:         12612
+    ## 4:          4340
 
 ``` r
 ## Sanity checks
@@ -597,86 +594,77 @@ non.duplicated.stoichiometry.dt[
     ## 11:  Q8IWS0|PHF6_HUMAN      173 RKTNFKGLSED  8.961075e-02  0.7209
     ## 12:  P11387|TOP1_HUMAN       40 HKEHKKEKDRE  9.603473e-02  0.9287
     ## 13:  P11387|TOP1_HUMAN       25 DSHKHKDKHKD  9.924617e-02  0.9081
-    ## 14:  P11387|TOP1_HUMAN       23 LNDSHKHKDKH  9.997793e-02  0.8872
-    ## 15: O43143|DHX15_HUMAN       18 YPSGKKRAGTD  1.802729e-01  0.8530
-    ## 16:  Q15059|BRD3_HUMAN      364 STVKRKMDGRE  1.805185e-01  0.7120
-    ## 17:  Q13428|TCOF_HUMAN     1348 ESRKRKLSGDQ  1.805185e-01  0.8375
-    ## 18: P0DMV8|HS71A_HUMAN      248 EEFKRKHKKDI  1.829324e-01  0.3774
-    ## 19:  P11387|TOP1_HUMAN       36 REHRHKEHKKE  1.914515e-01  0.9190
-    ## 20:  O60885|BRD4_HUMAN      544 KEKDKKEKKKE  2.679015e-01  0.8872
-    ## 21:  P62851|RS25_HUMAN       14 KKDAGKSAKKD  2.688655e-01  0.7982
-    ## 22:  O60885|BRD4_HUMAN      537 QQNKPKKKEKD  2.690320e-01  0.9106
-    ## 23:  Q6PD62|CTR9_HUMAN      993 KAEKKKAPKPE  2.691985e-01  0.9649
-    ## 24:  O60885|BRD4_HUMAN      535 QPQQNKPKKKE  2.697638e-01  0.8920
-    ## 25:  P35251|RFC1_HUMAN       38 TLKAKKGIKEI  2.697638e-01  0.5707
-    ## 26:  O60885|BRD4_HUMAN      572 EPPPKKTKKNN  2.697638e-01  0.9329
-    ## 27:  Q15059|BRD3_HUMAN      651 SASGKKQAAKS  2.703290e-01  0.7250
-    ## 28:  O60885|BRD4_HUMAN      291 KGVKRKADTTT  2.703954e-01  0.8623
-    ## 29:  Q15059|BRD3_HUMAN      684 LSSSKKPARKE  2.705619e-01  0.8313
-    ## 30: O95232|LC7L3_HUMAN      392 KKSSVKSGSRE  2.705619e-01  0.8681
-    ## 31: Q13435|SF3B2_HUMAN      320 TVSVSKKEKNR  2.705619e-01  0.8198
-    ## 32:  O60885|BRD4_HUMAN      552 KKEKHKRKEEV  2.732086e-01  0.8565
-    ## 33: P11142|HSP7C_HUMAN      248 AEFKRKHKKDI  2.736074e-01  0.3321
-    ## 34:  P83731|RL24_HUMAN       61 RRKHKKGQSEE  2.745720e-01  0.5456
-    ## 35:  P11387|TOP1_HUMAN       39 RHKEHKKEKDR  2.776175e-01  0.9249
-    ## 36:  O60885|BRD4_HUMAN      541 PKKKEKDKKEK  3.585764e-01  0.9287
-    ## 37:  O60885|BRD4_HUMAN      538 QNKPKKKEKDK  3.591417e-01  0.9106
-    ## 38:  P25440|BRD2_HUMAN      755 TKKPPKKANEK  3.598734e-01  0.8713
-    ## 39:  O60885|BRD4_HUMAN      575 PKKTKKNNSSN  3.604387e-01  0.9168
-    ## 40:  P25440|BRD2_HUMAN      589 PKKSKKASGSG  3.604387e-01  0.9562
-    ## 41:  P25440|BRD2_HUMAN      586 PPQPKKSKKAS  3.604387e-01  0.9664
-    ## 42: Q08945|SSRP1_HUMAN      524 QLKKAKMAKDR  3.605050e-01  0.6948
-    ## 43:  Q14839|CHD4_HUMAN       67 DPKIPKSKRQK  3.605050e-01  0.8493
-    ## 44:  O60885|BRD4_HUMAN      289 TKKGVKRKADT  3.605050e-01  0.9126
-    ## 45:  Q2NL82|TSR1_HUMAN       42 LKTLSKKVRKE  3.606715e-01  0.5139
-    ## 46:  Q8TDN6|BRX1_HUMAN       17 FAVQAKKPKRN  3.612368e-01  0.6227
-    ## 47:  Q15059|BRD3_HUMAN      683 QLSSSKKPARK  3.612368e-01  0.8530
-    ## 48:  Q15059|BRD3_HUMAN      643 QKKQRKPFSAS  3.612368e-01  0.6089
-    ## 49: Q9NQ29|LUC7L_HUMAN      323 RDRSAKYKFSR  3.620884e-01  0.7718
-    ## 50: Q9NQ29|LUC7L_HUMAN      325 RSAKYKFSRER  3.622549e-01  0.6851
-    ## 51:  O60885|BRD4_HUMAN      547 DKKEKKKEKHK  3.623537e-01  0.8313
-    ## 52:  O60885|BRD4_HUMAN      550 EKKKEKHKRKE  3.633183e-01  0.8681
-    ## 53:  Q9BZ95|NSD3_HUMAN      199 KEKRKKSNKHD  3.637170e-01  0.8872
-    ## 54:  O60885|BRD4_HUMAN      727 APKSKKKGHPG  3.642160e-01  0.9684
-    ## 55: Q8N9Q2|SR1IP_HUMAN      142 KRKKEKHSSTP  3.644488e-01  0.8125
-    ## 56:  Q9BVP2|GNL3_HUMAN       23 RYKIQKKVREH  3.652341e-01  0.7415
-    ## 57: Q9Y383|LC7L2_HUMAN      266 SRSHSKNPKRS  3.658122e-01  0.9039
-    ## 58:  Q9BVP2|GNL3_HUMAN       20 CHKRYKIQKKV  4.353016e-01  0.7951
-    ## 59:  O60885|BRD4_HUMAN      539 NKPKKKEKDKK  4.492514e-01  0.9308
-    ## 60:  Q15059|BRD3_HUMAN      489 PVNKPKKKKEK  4.499831e-01  0.8279
-    ## 61:   P10412|H14_HUMAN      174 KAKSPKKAKAA  4.505484e-01  0.8596
-    ## 62:   P10412|H14_HUMAN      180 KAKAAKPKKAP  4.505484e-01  0.9269
-    ## 63:   P10412|H14_HUMAN      175 AKSPKKAKAAK  4.505484e-01  0.8920
-    ## 64:  Q15059|BRD3_HUMAN      487 QAPVNKPKKKK  4.505484e-01  0.7718
-    ## 65: Q96SB4|SRPK1_HUMAN       18 KRTKAKKDKAQ  4.506147e-01  0.7036
-    ## 66:  Q9BVP2|GNL3_HUMAN      221 ITKRVKAKKNA  4.513465e-01  0.4441
-    ## 67: Q96SB4|SRPK1_HUMAN       19 RTKAKKDKAQR  4.514128e-01  0.7951
-    ## 68:  P25440|BRD2_HUMAN      546 PISKPKRKREK  4.515793e-01  0.8198
-    ## 69:  Q12873|CHD3_HUMAN       55 RKRGPKKQKEN  4.515793e-01  0.8828
-    ## 70: Q5BKY9|F133B_HUMAN       90 ESSSKKRQRKK  4.515793e-01  0.8013
-    ## 71: Q8WXA9|SREK1_HUMAN      397 SPRTSKTIKRK  4.521446e-01  0.9211
-    ## 72: Q8WXA9|SREK1_HUMAN      400 TSKTIKRKSSR  4.521446e-01  0.9329
-    ## 73: Q8N9Q2|SR1IP_HUMAN      139 EKKKRKKEKHS  4.539932e-01  0.9190
-    ## 74:  Q6UN15|FIP1_HUMAN      569 KHKKSKRSKEG  4.545585e-01  0.9230
-    ## 75: Q9BRS2|RIOK1_HUMAN      555 IPKHVKKRKEK  4.545585e-01  0.7799
-    ## 76: Q9Y383|LC7L2_HUMAN      269 HSKNPKRSRSR  4.567199e-01  0.9433
-    ## 77: Q08945|SSRP1_HUMAN      521 KRKQLKKAKMA  5.414562e-01  0.7331
-    ## 78:  O60885|BRD4_HUMAN      286 PVKTKKGVKRK  5.414562e-01  0.8894
-    ## 79:   P62081|RS7_HUMAN      113 SRTKNKQKRPR  5.430524e-01  0.8655
-    ## 80:  O60885|BRD4_HUMAN      548 KKEKKKEKHKR  5.441029e-01  0.8421
-    ## 81: Q8N9Q2|SR1IP_HUMAN      140 KKKRKKEKHSS  5.446682e-01  0.9211
-    ## 82: Q9BRS2|RIOK1_HUMAN      552 KNKIPKHVKKR  5.452334e-01  0.8162
-    ## 83:  Q6UN15|FIP1_HUMAN      564 SHRRHKHKKSK  5.535860e-01  0.9013
-    ## 84:   P62241|RS8_HUMAN      144 KKRSKKIQKKY  6.315530e-01  0.4652
-    ## 85: Q66PJ3|AR6P4_HUMAN      294 GKYKDKRRKKK  6.316193e-01  0.8713
-    ## 86: Q96SB4|SRPK1_HUMAN       16 RKKRTKAKKDK  6.316322e-01  0.5901
-    ## 87: Q66PJ3|AR6P4_HUMAN      292 KRGKYKDKRRK  6.324174e-01  0.8681
-    ## 88: Q66PJ3|AR6P4_HUMAN      290 RKKRGKYKDKR  6.324174e-01  0.8655
-    ## 89:  Q6UN15|FIP1_HUMAN      567 RHKHKKSKRSK  6.399185e-01  0.9168
-    ## 90:  Q6UN15|FIP1_HUMAN      566 RRHKHKKSKRS  6.407166e-01  0.8966
-    ## 91:  P46100|ATRX_HUMAN     1424 YKQKKKRRRIK  7.232589e-01  0.6531
-    ## 92: Q13435|SF3B2_HUMAN      332 RRNRKKKKKPQ  7.232717e-01  0.7672
-    ## 93:  P46100|ATRX_HUMAN     1422 RSYKQKKKRRR  7.240570e-01  0.5992
+    ## 14: O43143|DHX15_HUMAN       18 YPSGKKRAGTD  1.802729e-01  0.8530
+    ## 15:  Q15059|BRD3_HUMAN      364 STVKRKMDGRE  1.805185e-01  0.7120
+    ## 16:  Q13428|TCOF_HUMAN     1348 ESRKRKLSGDQ  1.805185e-01  0.8375
+    ## 17:  P11387|TOP1_HUMAN       36 REHRHKEHKKE  1.914515e-01  0.9190
+    ## 18:  O60885|BRD4_HUMAN      544 KEKDKKEKKKE  2.679015e-01  0.8872
+    ## 19:  P62851|RS25_HUMAN       14 KKDAGKSAKKD  2.688655e-01  0.7982
+    ## 20:  O60885|BRD4_HUMAN      537 QQNKPKKKEKD  2.690320e-01  0.9106
+    ## 21:  Q6PD62|CTR9_HUMAN      993 KAEKKKAPKPE  2.691985e-01  0.9649
+    ## 22:  O60885|BRD4_HUMAN      535 QPQQNKPKKKE  2.697638e-01  0.8920
+    ## 23:  P35251|RFC1_HUMAN       38 TLKAKKGIKEI  2.697638e-01  0.5707
+    ## 24:  O60885|BRD4_HUMAN      572 EPPPKKTKKNN  2.697638e-01  0.9329
+    ## 25:  Q15059|BRD3_HUMAN      651 SASGKKQAAKS  2.703290e-01  0.7250
+    ## 26:  O60885|BRD4_HUMAN      291 KGVKRKADTTT  2.703954e-01  0.8623
+    ## 27:  Q15059|BRD3_HUMAN      684 LSSSKKPARKE  2.705619e-01  0.8313
+    ## 28: O95232|LC7L3_HUMAN      392 KKSSVKSGSRE  2.705619e-01  0.8681
+    ## 29: Q13435|SF3B2_HUMAN      320 TVSVSKKEKNR  2.705619e-01  0.8198
+    ## 30:  O60885|BRD4_HUMAN      552 KKEKHKRKEEV  2.732086e-01  0.8565
+    ## 31: P11142|HSP7C_HUMAN      248 AEFKRKHKKDI  2.736074e-01  0.3321
+    ## 32:  P11387|TOP1_HUMAN       39 RHKEHKKEKDR  2.776175e-01  0.9249
+    ## 33:  O60885|BRD4_HUMAN      541 PKKKEKDKKEK  3.585764e-01  0.9287
+    ## 34:  O60885|BRD4_HUMAN      538 QNKPKKKEKDK  3.591417e-01  0.9106
+    ## 35:  P25440|BRD2_HUMAN      755 TKKPPKKANEK  3.598734e-01  0.8713
+    ## 36:  O60885|BRD4_HUMAN      575 PKKTKKNNSSN  3.604387e-01  0.9168
+    ## 37:  P25440|BRD2_HUMAN      589 PKKSKKASGSG  3.604387e-01  0.9562
+    ## 38:  P25440|BRD2_HUMAN      586 PPQPKKSKKAS  3.604387e-01  0.9664
+    ## 39: Q08945|SSRP1_HUMAN      524 QLKKAKMAKDR  3.605050e-01  0.6948
+    ## 40:  Q14839|CHD4_HUMAN       67 DPKIPKSKRQK  3.605050e-01  0.8493
+    ## 41:  O60885|BRD4_HUMAN      289 TKKGVKRKADT  3.605050e-01  0.9126
+    ## 42:  Q2NL82|TSR1_HUMAN       42 LKTLSKKVRKE  3.606715e-01  0.5139
+    ## 43:  Q8TDN6|BRX1_HUMAN       17 FAVQAKKPKRN  3.612368e-01  0.6227
+    ## 44:  Q15059|BRD3_HUMAN      683 QLSSSKKPARK  3.612368e-01  0.8530
+    ## 45: Q9NQ29|LUC7L_HUMAN      323 RDRSAKYKFSR  3.620884e-01  0.7718
+    ## 46: Q9NQ29|LUC7L_HUMAN      325 RSAKYKFSRER  3.622549e-01  0.6851
+    ## 47:  O60885|BRD4_HUMAN      547 DKKEKKKEKHK  3.623537e-01  0.8313
+    ## 48:  O60885|BRD4_HUMAN      550 EKKKEKHKRKE  3.633183e-01  0.8681
+    ## 49:  Q9BZ95|NSD3_HUMAN      199 KEKRKKSNKHD  3.637170e-01  0.8872
+    ## 50:  O60885|BRD4_HUMAN      727 APKSKKKGHPG  3.642160e-01  0.9684
+    ## 51:  Q9BVP2|GNL3_HUMAN       23 RYKIQKKVREH  3.652341e-01  0.7415
+    ## 52: Q9Y383|LC7L2_HUMAN      266 SRSHSKNPKRS  3.658122e-01  0.9039
+    ## 53:  Q9BVP2|GNL3_HUMAN       20 CHKRYKIQKKV  4.353016e-01  0.7951
+    ## 54:  O60885|BRD4_HUMAN      539 NKPKKKEKDKK  4.492514e-01  0.9308
+    ## 55:  Q15059|BRD3_HUMAN      489 PVNKPKKKKEK  4.499831e-01  0.8279
+    ## 56:  Q15059|BRD3_HUMAN      487 QAPVNKPKKKK  4.505484e-01  0.7718
+    ## 57: Q96SB4|SRPK1_HUMAN       18 KRTKAKKDKAQ  4.506147e-01  0.7036
+    ## 58:  Q9BVP2|GNL3_HUMAN      221 ITKRVKAKKNA  4.513465e-01  0.4441
+    ## 59: Q96SB4|SRPK1_HUMAN       19 RTKAKKDKAQR  4.514128e-01  0.7951
+    ## 60:  P25440|BRD2_HUMAN      546 PISKPKRKREK  4.515793e-01  0.8198
+    ## 61:  Q12873|CHD3_HUMAN       55 RKRGPKKQKEN  4.515793e-01  0.8828
+    ## 62: Q5BKY9|F133B_HUMAN       90 ESSSKKRQRKK  4.515793e-01  0.8013
+    ## 63: Q8WXA9|SREK1_HUMAN      397 SPRTSKTIKRK  4.521446e-01  0.9211
+    ## 64: Q8WXA9|SREK1_HUMAN      400 TSKTIKRKSSR  4.521446e-01  0.9329
+    ## 65: Q8N9Q2|SR1IP_HUMAN      139 EKKKRKKEKHS  4.539932e-01  0.9190
+    ## 66:  Q6UN15|FIP1_HUMAN      569 KHKKSKRSKEG  4.545585e-01  0.9230
+    ## 67: Q9BRS2|RIOK1_HUMAN      555 IPKHVKKRKEK  4.545585e-01  0.7799
+    ## 68: Q9Y383|LC7L2_HUMAN      269 HSKNPKRSRSR  4.567199e-01  0.9433
+    ## 69: Q08945|SSRP1_HUMAN      521 KRKQLKKAKMA  5.414562e-01  0.7331
+    ## 70:  O60885|BRD4_HUMAN      286 PVKTKKGVKRK  5.414562e-01  0.8894
+    ## 71:   P62081|RS7_HUMAN      113 SRTKNKQKRPR  5.430524e-01  0.8655
+    ## 72:  O60885|BRD4_HUMAN      548 KKEKKKEKHKR  5.441029e-01  0.8421
+    ## 73: Q8N9Q2|SR1IP_HUMAN      140 KKKRKKEKHSS  5.446682e-01  0.9211
+    ## 74: Q9BRS2|RIOK1_HUMAN      552 KNKIPKHVKKR  5.452334e-01  0.8162
+    ## 75:  Q6UN15|FIP1_HUMAN      564 SHRRHKHKKSK  5.535860e-01  0.9013
+    ## 76: Q66PJ3|AR6P4_HUMAN      294 GKYKDKRRKKK  6.316193e-01  0.8713
+    ## 77: Q96SB4|SRPK1_HUMAN       16 RKKRTKAKKDK  6.316322e-01  0.5901
+    ## 78: Q66PJ3|AR6P4_HUMAN      292 KRGKYKDKRRK  6.324174e-01  0.8681
+    ## 79: Q66PJ3|AR6P4_HUMAN      290 RKKRGKYKDKR  6.324174e-01  0.8655
+    ## 80:  Q6UN15|FIP1_HUMAN      567 RHKHKKSKRSK  6.399185e-01  0.9168
+    ## 81:  Q6UN15|FIP1_HUMAN      566 RRHKHKKSKRS  6.407166e-01  0.8966
+    ## 82:  P46100|ATRX_HUMAN     1424 YKQKKKRRRIK  7.232589e-01  0.6531
+    ## 83: Q13435|SF3B2_HUMAN      332 RRNRKKKKKPQ  7.232717e-01  0.7672
+    ## 84:  P46100|ATRX_HUMAN     1422 RSYKQKKKRRR  7.240570e-01  0.5992
     ##              Accession position      Window  windowCharge IUPRED2
 
 ``` r
@@ -727,7 +715,7 @@ ggplot(
                            "FALSE" = "gray60"
                        ), name = "BRDs") +
     xlab("Local charge") +
-    ylab("Disordedness") +
+    ylab("Disorderedness") +
     ggtitle("Biophysical propety around K")
 ```
 
@@ -749,7 +737,7 @@ sessioninfo::session_info()
     ##  collate  en_GB.UTF-8                 
     ##  ctype    en_GB.UTF-8                 
     ##  tz       Europe/London               
-    ##  date     2021-12-16                  
+    ##  date     2021-12-22                  
     ## 
     ## ─ Packages ───────────────────────────────────────────────────────────────────
     ##  package              * version  date       lib source        

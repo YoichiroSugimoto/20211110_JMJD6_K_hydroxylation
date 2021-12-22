@@ -451,7 +451,7 @@ ggplot(
                            "FALSE" = "gray60"
                        ), name = "BRDs") +
     xlab("Local charge") +
-    ylab("Disordedness") +
+    ylab("Disorderedness") +
     ggtitle("Biophysical propety around K")
 
 

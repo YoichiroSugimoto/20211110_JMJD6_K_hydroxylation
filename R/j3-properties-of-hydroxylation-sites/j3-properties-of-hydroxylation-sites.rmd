@@ -171,6 +171,7 @@ reportOxKSiteStats <- function(stoichiometry.dt){
 
 temp <- reportOxKSiteStats(stoichiometry.dt)
 
+print("Hydroxylation sites identified by non-unique peptides; see the main text.")
 stoichiometry.dt[
     order(Accession, position, -oxK_ratio)
 ][, head(.SD, 1), by = list(Accession, position)][

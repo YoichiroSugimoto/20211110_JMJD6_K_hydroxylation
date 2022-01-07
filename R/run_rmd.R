@@ -49,13 +49,19 @@ if(TRUE){
         file.mv.cmd <- paste(
             "rsync", "--remove-source-files", "-r",
             file.path(dirname(full.rmd.path), non.rmd.dir),
-            file.path(doc.dir),
-            "&&",
-            "find", file.path(dirname(full.rmd.path), non.rmd.dir),
-            "-depth", "-type", "d", "-empty", "-exec", "rmdir", '"{}"'
+            file.path(doc.dir)
         )
 
         system(file.mv.cmd)
+
+        empty.file.rm.cmd <- paste(
+            "find",
+            file.path(dirname(full.rmd.path), non.rmd.dir),
+            "-type", "d",
+            "-empty", "-delete"
+        )
+
+        system(empty.file.rm.cmd)
         
     } else {"No output dir"}
     

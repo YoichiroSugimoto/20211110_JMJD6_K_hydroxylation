@@ -1,6 +1,6 @@
 # Introduction
 
-This pipeline performs the analyses of LC-MS/MS data for **"Jmjd6 catalysed hydroxylation of unstructured poly-lysine domains in proteins associating with membraneless organelles"**.
+This pipeline performs the analyses of LC-MS/MS data for **"Widespread hydroxylation of unstructured lysine-rich protein domains by JMJD6"**.
 To run this pipeline, the LC-MS/MS data must have been processed by `Peaks Studio` or `Spectronaut` as described in the paper.
 Specifically, the pipeline performs the following analyses.
 

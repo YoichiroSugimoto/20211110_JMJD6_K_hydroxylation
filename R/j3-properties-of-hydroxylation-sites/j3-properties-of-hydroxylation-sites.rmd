@@ -399,11 +399,12 @@ non.duplicated.stoichiometry.dt[, table(CenterResidue)]
 
 data.cols <- c("IUPRED2", "WindowHydropathy", "windowCharge", "K_ratio")
 
-non.duplicated.stoichiometry.dt[
-    curated_oxK_site == "JMJD6_substrate"
-][order(windowCharge)][, .(
-     Accession, position, Window, windowCharge, IUPRED2
- )]
+## non.duplicated.stoichiometry.dt[
+##     curated_oxK_site == "JMJD6_substrate"
+## ][order(windowCharge)][, .(
+##      Accession, position, Window, windowCharge, IUPRED2
+##  )]
+
 
 ggplot(
     data = non.duplicated.stoichiometry.dt[order(curated_oxK_site != "Others")],
@@ -455,6 +456,20 @@ ggplot(
     ylab("Disorderedness") +
     ggtitle("Biophysical propety around K")
 
+
+print("Test for disorderedness")
+non.duplicated.stoichiometry.dt %$%
+    {wilcox.test(
+         .[curated_oxK_site == "JMJD6_substrate", IUPRED2],
+         .[curated_oxK_site == "Others", IUPRED2]
+    )}
+
+print("Test for local charge")
+non.duplicated.stoichiometry.dt %$%
+    {wilcox.test(
+         .[curated_oxK_site == "JMJD6_substrate", windowCharge],
+         .[curated_oxK_site == "Others", windowCharge]
+    )}
 
 
 ```

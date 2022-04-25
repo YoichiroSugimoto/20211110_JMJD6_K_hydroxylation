@@ -113,21 +113,6 @@ j6pep.substrate.dt[
         {factor(., levels = .)}
 ]
 
-ggplot(
-    data = j6pep.substrate.dt,
-    aes(
-        x = accession_position,
-        y = oxK_ratio * 100
-    )
-) +
-    geom_bar(stat = "identity") +
-    coord_cartesian(ylim = c(0, 100)) +
-    theme(
-        axis.title.x = element_blank()
-    ) +
-    scale_x_discrete(guide = guide_axis(angle = 90)) +
-    ylab("Stoichiometry [%]") +
-    ggtitle("JMJD6 peptide pulldown data")
 
 reportOxKSiteStats <- function(stoichiometry.dt){
     print("Total unique JMJD6 substrate proteins and sites:")
